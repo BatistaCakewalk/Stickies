@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1395.43 365.63">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f5a0c5;
+        stroke: #ec008c;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke-miterlimit: 10;
+        stroke-width: 12px;
+      }
+
+      .cls-4, .cls-5, .cls-6 {
+        fill: #231f20;
+      }
+
+      .cls-2 {
+        fill: #f5e69d;
+        stroke: #f8e100;
+      }
+
+      .cls-3 {
+        fill: #00a3e6;
+        stroke: #2e3192;
+      }
+
+      .cls-5 {
+        font-family: SegoeUIBlack, 'Segoe UI';
+        font-size: 239.05px;
+      }
+
+      .cls-6 {
+        font-family: SegoeUI-BoldItalic, 'Segoe UI';
+        font-size: 79.68px;
+        font-style: italic;
+        font-weight: 700;
+      }
+
+      .cls-7 {
+        letter-spacing: -.05em;
+      }
+    </style>
+  </defs>
+  <rect class="cls-3" x="9.73" y="40.13" width="220" height="220" transform="translate(4.97 -3.83) rotate(1.87)"/>
+  <rect class="cls-2" x="70.23" y="139.63" width="220" height="220"/>
+  <rect class="cls-1" x="193.23" y="18.63" width="220" height="220" transform="translate(-12.84 35.91) rotate(-6.64)"/>
+  <g>
+    <text class="cls-5" transform="translate(502.37 217.26)"><tspan x="0" y="0">Stickies</tspan></text>
+    <rect class="cls-4" x="503.69" y="237.48" width="884.56" height="16.71"/>
+    <text class="cls-6" transform="translate(503.69 326.33)"><tspan x="0" y="0">A RE</tspan><tspan class="cls-7" x="171.16" y="0">DT</tspan><tspan x="269.67" y="0">OPS APP</tspan></text>
+  </g>
+</svg>
