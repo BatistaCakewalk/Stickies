@@ -10,13 +10,13 @@ import java.util.ArrayList;
 
 public class StorageHandler {
 
-    private Connection connection;
+    private final Connection connection;
 
     public StorageHandler() throws IOException, SQLException {
         String appData = System.getenv("APPDATA");
         Path dbPath = Path.of(appData, "Stickies", "notes.sqlite");
         Files.createDirectories(dbPath.getParent());
-        connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath.toString());
+        connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
         initDB();
     }
 
