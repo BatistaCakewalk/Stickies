@@ -1,5 +1,5 @@
 package com.redtops.stickies.core;
-/* Class file for holding data. Notes needs to store the following..
+/* Class file for holding data. Notes needs to store the following.
 *
 * unique identifier (String)
 * content | The use's text and such. (Also string. What else do you think?)
