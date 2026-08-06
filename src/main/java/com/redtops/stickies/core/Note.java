@@ -4,7 +4,7 @@ package com.redtops.stickies.core;
 * unique identifier (String)
 * content | The use's text and such. (Also string. What else do you think?)
 * Width and Height. (int. Long is unnecessary)
-* color (string ofc. Maybe a set.. #FFEB3B etc.)
+* color (string ofc. Maybe a set. #FFEB3B etc.)
 * x and y cords for where should the note be placed upon open. (Int)
 *  */
 
@@ -22,19 +22,6 @@ public class Note {
     // POS
     private int x;
     private int y;
-
-    // Data Constructor
-    public Note(String id, String content, int x, int y, int width, int height, String color) {
-        this.id = id;
-        this.content = content;
-        // Position
-        this.x = x;
-        this.y = y;
-        // Size
-        this.width = width;
-        this.height = height;
-        this.color = color;
-    }
 
     // Default Configuration
     /* When you create a note, this is what Stickies will use
