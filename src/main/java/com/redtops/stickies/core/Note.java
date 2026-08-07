@@ -1,12 +1,15 @@
 package com.redtops.stickies.core;
-/* Class file for holding data. Notes needs to store the following.
-*
-* unique identifier (String)
-* content | The use's text and such. (Also string. What else do you think?)
-* Width and Height. (int. Long is unnecessary)
-* color (string ofc. Maybe a set. #FFEB3B etc.)
-* x and y cords for where should the note be placed upon open. (Int)
-*  */
+/** Stickies | Note.java
+ * Class file for holding data. Notes needs to store the following.
+ *
+ * - unique identifier (String)
+ * - content | The use's text and such. (Also string. What else do you think?)
+ * - Width and Height. (int. Long is unnecessary)
+ * - color (string ofc. Maybe a set. #FFEB3B etc.)
+ * x and y cords for where should the note be placed upon open. (Int)
+ *
+ * Last Updated: 8/9/2026 9:58 PM
+ * */
 
 import java.util.UUID;
 
