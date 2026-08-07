@@ -1,3 +1,14 @@
+/** Stickies | NoteWindow.java
+ *  Authors: Batista Cakewalk
+ *
+ *  The class responsible for rendering Sticky Notes
+ *  in ur desktop for writing. Responsible in initializing
+ *  dragging, scaling and the textbox.
+ *
+ *  Last updated: 8/6/2026 (9:51 PM)
+ * */
+
+
 package com.redtops.stickies.ui;
 
 // Java Imports
@@ -18,6 +29,7 @@ import java.util.Objects;
 
 public class NoteWindow extends JFrame {
 
+    // Variables
     private final Note note;
     private final NoteManager noteManager;
     private JTextArea textArea;
@@ -38,12 +50,12 @@ public class NoteWindow extends JFrame {
        makeSizeable(); // Makes rescaling work
     }
 
-    // Window properties initWindow()
-    /* This Method is used to create an actual Sticky Note window
+    /** Window properties initWindow()
+    * This Method is used to create an actual Sticky Note window
     *  using Swing. It creates a JFrame for the textbox area, topbar and an invisible
     *  dragging area to rescale. It also has 2 JButtons used to discard the note
     *  and to always keep said note on top (Aka Always On Top).
-    *
+    * <p>
     *  - Batista 8/6/2026 */
     private void initWindow() throws IOException {
         setSize(note.getWidth(), note.getHeight()); // From Note.Java
@@ -58,26 +70,32 @@ public class NoteWindow extends JFrame {
         Image image = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/Pin.png")));
         Image scaled = image.getScaledInstance(12, 18, Image.SCALE_SMOOTH);
 
-
+        // titleBar Configuration
         titleBar = new JPanel();
         titleBar.setPreferredSize(new Dimension(getWidth(), 32));
         titleBar.setBackground(Color.decode(note.getColor()).brighter()); // brighter color here
         titleBar.setLayout(new BorderLayout());
 
-        add(titleBar, BorderLayout.NORTH);
+        add(titleBar, BorderLayout.NORTH); // Creates titleBar
 
-        JButton closeButton = new JButton("X");
-        closeButton.addActionListener(e -> dispose());
+        // closeButton Configuration
+        JButton closeButton = new JButton("X"); // The Button itself
+        closeButton.addActionListener(e -> dispose()); // Action event.
         closeButton.setFocusable(false);
         closeButton.setBorderPainted(false);
         closeButton.setContentAreaFilled(false);
-        titleBar.add(closeButton,BorderLayout.EAST);
+        titleBar.add(closeButton,BorderLayout.EAST); // Creates closeButton and adds it to the RIGHT of the title.
 
+        // alwaysOnTopButton Configuration
+        JButton alwaysOnTopButton = new JButton(); // The Button itself
+        alwaysOnTopButton.setIcon(new ImageIcon(scaled)); // Applies pin.png to the icon.
 
-
-        JButton alwaysOnTopButton = new JButton();
-        alwaysOnTopButton.setIcon(new ImageIcon(scaled));
-
+        /** Lambda Function addActionListener(e -> setAlwaysOnTop(!isAlwaysOnTop()));
+         *  Simply checks if the value is True or false and sets accordingly.
+         *  Nothing major about it.
+         *  <p>
+         *  - Batista 8/6/2026 9:41 PM
+         * */
         alwaysOnTopButton.addActionListener(e -> setAlwaysOnTop(!isAlwaysOnTop()));
         alwaysOnTopButton.setFocusable(false);
         alwaysOnTopButton.setBorderPainted(false);
@@ -98,8 +116,16 @@ public class NoteWindow extends JFrame {
                 Color.decode(note.getColor())
         );
     }
-    // Text area
+
+    /** initComponments() Method
+     * Initializes the required components like text and DocumentListener.
+     * That's just it.
+     * <p>
+     * This gets initialized on the NoteWindow constructor above this code.
+     * - Batista 8/6/2026 9:11 PM
+     * */
     private void initComponents() {
+        // Text area
         textArea = new JTextArea(note.getContent());
         textArea.setOpaque(false);
         textArea.setLineWrap(true);
@@ -141,38 +167,55 @@ public class NoteWindow extends JFrame {
         });
     }
 
+    /** makeDraggable() Method
+     * This private method houses the required code and uses data from Note.java to make dragging sticky notes work.
+     * Using MouseAdapter, addMouseListener and MouseEvents
+     * to change the X and Y Cords of the sticky note window.
+     * <p>
+     * This gets initialized on the NoteWindow constructor above this code.
+     * - Batista 8/6/2026 7:42 PM
+     */
     private void makeDraggable() {
         titleBar.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                offsetX = e.getX();
-                offsetY = e.getY();
+                offsetX = e.getX(); // Obtains X Cords
+                offsetY = e.getY(); // Obtains Y Cords
             }
         });
 
+        // Listener Event for obtaining Location Data and Saving to SQLite
         titleBar.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                note.setCordX(getLocation().x);
-                note.setCordY(getLocation().y);
+                note.setCordX(getLocation().x); // Get X Cords
+                note.setCordY(getLocation().y); // Get Y Cords
                 try {
-                    noteManager.saveAll();
+                    noteManager.saveAll(); // Saves position data
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
             }
         });
 
+        // Listener Event for moving Sticky Notes
         titleBar.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                setLocation(e.getXOnScreen() - offsetX, e.getYOnScreen() - offsetY);
+                setLocation(e.getXOnScreen() - offsetX, e.getYOnScreen() - offsetY); // Sets the cords.
             }
         });
 
     }
-
-    private void makeSizeable () {
+    /** makeSizeable() Method
+     * This private method houses the required code and uses data from Note.java to make scaling sticky notes work.
+     * Using MouseAdapter, addMouseListener and MouseEvents
+     * to change the Width and Height of the sticky note window.
+     * <p>
+     * This gets initialized on the NoteWindow constructor above this code.
+     * - Batista 8/6/2026 7:47 PM
+     */
+    private void makeSizeable() {
         dragSection.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
