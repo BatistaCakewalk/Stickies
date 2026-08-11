@@ -97,6 +97,8 @@ public class NoteWindow extends JFrame {
         dragSection.setOpaque(false);
         add(dragSection, BorderLayout.SOUTH);
         LogService.debug("dragSection added.");
+        dragSection.setOpaque(false); // REQUIRED CODE
+        add(dragSection, BorderLayout.SOUTH); // Adds it to the button
 
         getContentPane().setBackground(Color.decode(note.getColor()));
         LogService.info("initWindow complete | noteId=" + note.getId());
@@ -179,6 +181,7 @@ public class NoteWindow extends JFrame {
             }
         });
 
+        // Listener Event for moving Sticky Notes
         titleBar.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {

@@ -2,6 +2,13 @@
  *  Authors: Batista Cakewalk
  *
  *  Last Updated: 8/13/2026
+ * <p>
+ *  The main application window for opening Sticky Notes. Entering settings
+ *  managing notes and all of that stuff. YadaYadaYada what else?
+ * <p>
+ *  Needs to delete and load notes from this end. Also open notes too.
+ * <p>
+ *  Last Updated: N/A
  * */
 
 package com.batista.stickies.ui;
@@ -26,13 +33,22 @@ import java.lang.management.MemoryMXBean;
 import java.sql.SQLException;
 import java.util.Objects;
 
+
+/**
+ *
+ */
 public class HomeMenu extends JFrame {
 
+    // Vars
     private final NoteManager noteManager;
     private final WindowData windowData;
+    // Swift Vars
     private JPanel titleBar;
     private JPanel dragSection;
+    private JPanel mainSection; // TODO: Next, make the main section
+    private JPanel notesSection; // TODO: Eventually
     private int offsetX, offsetY;
+//    private int startW, startH; Might not be needed since resizing not needed? Unsure. Need to think
 
     // Colors
     private static final Color BG       = new Color(0x2b2b2b);
@@ -46,6 +62,7 @@ public class HomeMenu extends JFrame {
         LogService.info("HomeMenu constructor called.");
         this.noteManager = noteManager;
         this.windowData = windowData;
+
         initHomeWindow();
         makeDraggable();
         LogService.info("HomeMenu fully initialized.");
@@ -55,6 +72,11 @@ public class HomeMenu extends JFrame {
         LogService.info("initHomeWindow called.");
         setSize(750, 600);
         setLocation(windowData.getCordX(), windowData.getCordY());
+        windowData.setWidth(600);
+        windowData.setHeight(700);
+        setSize(windowData.getWidth(), windowData.getHeight()); // From WindowData.Java
+        setLocation(windowData.getCordX(), windowData.getCordY()); // From WindowData.Java
+        setAlwaysOnTop(false);
         setUndecorated(true);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         getContentPane().setBackground(BG);
@@ -62,16 +84,25 @@ public class HomeMenu extends JFrame {
 
         // --- TITLE BAR ---
         titleBar = new JPanel(new BorderLayout());
+
+        // titleBar Configuration
+        titleBar = new JPanel(); // Create Title bar
         titleBar.setPreferredSize(new Dimension(getWidth(), 32));
         titleBar.setBackground(BG_DARK);
+        titleBar.setBackground(Color.decode(windowData.getColor()).darker());
+        titleBar.setLayout(new BorderLayout());
 
         Image appIcon = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesIcon.png")));
         JLabel appIconLabel = new JLabel(new ImageIcon(appIcon.getScaledInstance(16, 16, Image.SCALE_SMOOTH)));
         appIconLabel.setBorder(new EmptyBorder(0, 8, 0, 8));
         titleBar.add(appIconLabel, BorderLayout.WEST);
+        add(titleBar, BorderLayout.NORTH); // Creates titleBar
 
         JButton closeButton = new JButton("X");
         closeButton.setForeground(FG_GRAY);
+        // closeButton Configuration
+        JButton closeButton = new JButton("X"); // The Button itself
+        closeButton.addActionListener(e -> dispose()); // Action event.
         closeButton.setFocusable(false);
         closeButton.setBorderPainted(false);
         closeButton.setContentAreaFilled(false);
@@ -101,9 +132,9 @@ public class HomeMenu extends JFrame {
                     Graphics2D g2 = (Graphics2D) g.create();
                     // Set opacity to 40%
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
-                    
+
                     // Draw in bottom right corner, pushed further down and right
-                    int x = getWidth() - decoImg.getWidth(null) + 80; 
+                    int x = getWidth() - decoImg.getWidth(null) + 80;
                     int y = getHeight() - decoImg.getHeight(null) + 90;
                     g2.drawImage(decoImg, x, y, null);
                     g2.dispose();
@@ -191,24 +222,32 @@ public class HomeMenu extends JFrame {
 
         content.add(center, BorderLayout.CENTER);
         add(content, BorderLayout.CENTER);
+        titleBar.add(closeButton,BorderLayout.EAST); // Creates closeButton and adds it to the RIGHT of the title.
 
         // --- STATUS BAR (JVM Memory) ---
         JPanel statusBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         statusBar.setBackground(BG_DARK);
+        JLabel iconWrapper = new JLabel();
+        iconWrapper.setOpaque(false);
 
         JLabel memLabel = new JLabel();
         memLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
         memLabel.setForeground(FG_WHITE);
         updateMemLabel(memLabel);
         statusBar.add(memLabel);
+        Image image = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesIcon.png")));
+        Image scaled = image.getScaledInstance(12, 18, Image.SCALE_SMOOTH);
 
         // Refresh memory label every 2 seconds
         Timer memTimer = new Timer(2000, e -> updateMemLabel(memLabel));
         memTimer.start();
+        iconWrapper.setIcon(new ImageIcon(scaled));
 
         add(statusBar, BorderLayout.SOUTH);
         LogService.info("initHomeWindow complete.");
     }
+        titleBar.add(iconWrapper, BorderLayout.WEST);
+        iconWrapper.add(titleBar,BorderLayout.WEST);
 
     private JPanel makeNoteCard(Note note) {
         JPanel card = new JPanel(new BorderLayout(10, 0));
@@ -216,6 +255,11 @@ public class HomeMenu extends JFrame {
         card.setBorder(new EmptyBorder(8, 10, 8, 10));
         card.setMaximumSize(new Dimension(280, 56));
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Main Frame
+        mainSection = new JPanel();
+        mainSection.setPreferredSize(new Dimension(getWidth(), 20));
+        mainSection.setBackground(Color.decode(windowData.getColor())); // Get defaults
+        add(mainSection, BorderLayout.CENTER); // I think that's how u do it?
 
         // Gray sticky icon thumbnail
         JLabel thumb = new JLabel();
@@ -231,11 +275,19 @@ public class HomeMenu extends JFrame {
         // Note preview text
         JPanel textPanel = getJPanel(note);
         card.add(textPanel, BorderLayout.CENTER);
+        // Dragging section and configuration
+        dragSection = new JPanel();
+        dragSection.setPreferredSize(new Dimension(getWidth(), 8));
+        dragSection.setOpaque(false); // REQUIRED CODE
+        add(dragSection, BorderLayout.SOUTH); // Adds it to the button
 
         LogService.debug("Note card built | id=" + note.getId());
         noteClick(card, note);
         return card;
     }
+        getContentPane().setBackground(
+                Color.decode(windowData.getColor())
+        );
 
     private static JPanel getJPanel(Note note) {
         JPanel textPanel = new JPanel();
@@ -313,6 +365,15 @@ public class HomeMenu extends JFrame {
         return out;
     }
 
+    // TODO: Eventually make Dragging windows happen all from a Java Class to make things easier.
+    /** makeDraggable() Method (DIRECTLY FROM NoteWindow.java)
+     * This private method houses the required code and uses data from WindowData.java to make dragging windows work.
+     * Using MouseAdapter, addMouseListener and MouseEvents
+     * to change the X and Y Cords of the window.
+     * <p>
+     * This gets initialized on the constructor above this code.
+     * - Batista 8/7/2026 3:33 PM
+     */
     private void makeDraggable() {
         LogService.info("HomeMenu.makeDraggable called.");
         titleBar.addMouseListener(new MouseAdapter() {
@@ -320,20 +381,29 @@ public class HomeMenu extends JFrame {
             public void mousePressed(MouseEvent e) {
                 offsetX = e.getX();
                 offsetY = e.getY();
+                offsetX = e.getX(); // Obtains X Cords
+                offsetY = e.getY(); // Obtains Y Cords
             }
         });
+
+        // Listener Event for obtaining Location Data and Saving to SQLite
         titleBar.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
                 windowData.setCordX(getLocation().x);
                 windowData.setCordY(getLocation().y);
                 LogService.info("HomeMenu moved | x=" + windowData.getCordX() + " y=" + windowData.getCordY());
+                windowData.setCordX(getLocation().x); // Get X Cords
+                windowData.setCordY(getLocation().y); // Get Y Cords
             }
         });
+
+        // Listener Event for moving Sticky Notes
         titleBar.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
                 setLocation(e.getXOnScreen() - offsetX, e.getYOnScreen() - offsetY);
+                setLocation(e.getXOnScreen() - offsetX, e.getYOnScreen() - offsetY); // Sets the cords.
             }
         });
         LogService.info("HomeMenu.makeDraggable setup complete.");

@@ -1,5 +1,5 @@
 // Core
-package com.batista.stickies.ui;
+package com.redtops.stickies.ui;
 
 /* Class file for System Tray if applicable.
 *  Create a constructor
