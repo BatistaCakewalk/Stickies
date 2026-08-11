@@ -110,7 +110,7 @@ public class NoteWindow extends JFrame {
         dragSection = new JPanel();
         dragSection.setPreferredSize(new Dimension(getWidth(), 8));
         dragSection.setOpaque(false); // REQUIRED CODE
-        add(dragSection, BorderLayout.SOUTH); // Adds it to the buttom
+        add(dragSection, BorderLayout.SOUTH); // Adds it to the button
 
 
         getContentPane().setBackground(
