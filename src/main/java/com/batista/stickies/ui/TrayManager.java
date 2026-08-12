@@ -1,5 +1,5 @@
 // Core
-package com.redtops.stickies.ui;
+package com.batista.stickies.ui;
 
 /* Class file for System Tray if applicable.
 *  Create a constructor
@@ -8,10 +8,10 @@ package com.redtops.stickies.ui;
 * */
 
 // Redtops Imports
-import com.redtops.stickies.core.Note;
-import com.redtops.stickies.core.NoteManager;
-import com.redtops.stickies.core.WindowData;
-import com.redtops.stickies.core.Logs.LogService;
+import com.batista.stickies.core.Note;
+import com.batista.stickies.core.NoteManager;
+import com.batista.stickies.core.WindowData;
+import com.batista.stickies.core.Logs.LogService;
 
 // Java Imports
 import java.awt.*;

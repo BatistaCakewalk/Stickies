@@ -1,13 +1,13 @@
 // I hate this Java code... MAS HELP ME!!!! AGHHHH
 
-package com.redtops.stickies.core;
+package com.batista.stickies.core;
 
-import com.redtops.stickies.storage.StorageHandler;
+import com.batista.stickies.storage.StorageHandler;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import com.redtops.stickies.core.Logs.LogService;
+import com.batista.stickies.core.Logs.LogService;
 
 
 public class NoteManager {

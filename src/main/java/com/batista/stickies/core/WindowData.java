@@ -1,4 +1,4 @@
-package com.redtops.stickies.core;
+package com.batista.stickies.core;
 
 import java.awt.*;
 

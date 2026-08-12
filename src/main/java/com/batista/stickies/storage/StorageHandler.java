@@ -1,6 +1,6 @@
-package com.redtops.stickies.storage;
+package com.batista.stickies.storage;
 
-import com.redtops.stickies.core.Note;
+import com.batista.stickies.core.Note;
 
 import java.io.IOException;
 import java.nio.file.Files;

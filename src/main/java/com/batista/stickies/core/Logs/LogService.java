@@ -1,12 +1,10 @@
-package com.redtops.stickies.core.Logs;
+package com.batista.stickies.core.Logs;
 
 // Enum Imports
-import com.redtops.stickies.core.Logs.LogLevel; // Why is this being said unused?
-import com.redtops.stickies.core.Logs.LogType; // Eventually
 // Java Imports
 import static java.lang.System.*;
-import com.redtops.stickies.core.Logs.TimeLog; // Why is this being said unused?
-import java.io.File;
+
+        import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 

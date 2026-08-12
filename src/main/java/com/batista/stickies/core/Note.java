@@ -1,4 +1,4 @@
-package com.redtops.stickies.core;
+package com.batista.stickies.core;
 /** Stickies | Note.java
  * Class file for holding data. Notes needs to store the following.
  *

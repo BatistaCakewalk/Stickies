@@ -9,12 +9,12 @@
  * */
 
 
-package com.redtops.stickies.ui;
+package com.batista.stickies.ui;
 
 // Java Imports
 
-import com.redtops.stickies.core.Note;
-import com.redtops.stickies.core.NoteManager;
+import com.batista.stickies.core.Note;
+import com.batista.stickies.core.NoteManager;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

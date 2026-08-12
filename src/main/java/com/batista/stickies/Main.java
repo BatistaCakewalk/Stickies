@@ -1,10 +1,8 @@
-package com.redtops.stickies;
+package com.batista.stickies;
 
-import com.redtops.stickies.core.Note;
-import com.redtops.stickies.core.NoteManager;
-import com.redtops.stickies.ui.NoteWindow;
-import com.redtops.stickies.ui.TrayManager;
-import com.redtops.stickies.core.Logs.LogService;
+import com.batista.stickies.core.NoteManager;
+import com.batista.stickies.ui.TrayManager;
+import com.batista.stickies.core.Logs.LogService;
 
 
 import java.io.IOException;

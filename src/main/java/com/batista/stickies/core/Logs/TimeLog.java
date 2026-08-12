@@ -1,4 +1,4 @@
-package com.redtops.stickies.core.Logs;
+package com.batista.stickies.core.Logs;
 
 // From geeksforgeeks. Because I cannot be bothered making my own, huge thanks to them
 // Source: https://www.geeksforgeeks.org/java/java-time-localdatetime-class-in-java/

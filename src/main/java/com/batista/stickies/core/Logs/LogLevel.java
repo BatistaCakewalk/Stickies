@@ -1,4 +1,4 @@
-package com.redtops.stickies.core.Logs;
+package com.batista.stickies.core.Logs;
 
 public enum LogLevel {
     INFO("INFO"),

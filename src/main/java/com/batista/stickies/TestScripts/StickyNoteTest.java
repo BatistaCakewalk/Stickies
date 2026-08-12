@@ -1,7 +1,7 @@
-package com.redtops.stickies.TestScripts;
+package com.batista.stickies.TestScripts;
 
-import com.redtops.stickies.core.Note;
-import com.redtops.stickies.core.NoteManager;
+import com.batista.stickies.core.Note;
+import com.batista.stickies.core.NoteManager;
 
 import java.sql.SQLException;
 
