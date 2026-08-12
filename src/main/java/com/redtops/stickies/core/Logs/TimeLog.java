@@ -18,4 +18,8 @@ class TimeLog {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss a");
         return LocalDateTime.now().format(formatter);
     }
+    public static String getFileTime() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+        return LocalDateTime.now().format(formatter);
+    }
 }

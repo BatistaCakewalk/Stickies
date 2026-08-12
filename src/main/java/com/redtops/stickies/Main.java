@@ -4,12 +4,15 @@ import com.redtops.stickies.core.Note;
 import com.redtops.stickies.core.NoteManager;
 import com.redtops.stickies.ui.NoteWindow;
 import com.redtops.stickies.ui.TrayManager;
+import com.redtops.stickies.core.Logs.LogService;
+
 
 import java.io.IOException;
 import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) throws SQLException, IOException {
+        LogService.info("Main Function called.");
         NoteManager manager = new NoteManager(); // Object
         TrayManager tray = new TrayManager(manager); // Object
 //        Note note = manager.createNote();

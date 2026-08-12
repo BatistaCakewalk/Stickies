@@ -11,6 +11,8 @@ package com.redtops.stickies.ui;
 import com.redtops.stickies.core.Note;
 import com.redtops.stickies.core.NoteManager;
 import com.redtops.stickies.core.WindowData;
+import com.redtops.stickies.core.Logs.LogService;
+
 // Java Imports
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -81,6 +83,7 @@ public class TrayManager {
             trayIcon.setImageAutoSize(true);
 
             try {
+                LogService.info("Adding Stickies to System Tray.");
                 tray.add(trayIcon); // Adds Stickies into System Tray.
             } catch (AWTException e){
                 System.err.println(e);
@@ -103,18 +106,24 @@ public class TrayManager {
                     Note note = noteManager.createNote();
                     try {
                         new NoteWindow(note, noteManager).setVisible(true);
+                        LogService.info("Triggered New Note.");
                     } catch (IOException ex) {
+                        LogService.info("Something went wrong! RuntimeException(ex)");
                         throw new RuntimeException(ex);
                     }
                     break;
                 case "Open main app.":
                     try {
+                        LogService.info("'Open main app' triggered.");
                         new HomeMenu(noteManager, windowData).setVisible(true);
                     } catch (IOException ex) {
+                        LogService.info("Something went wrong! RuntimeException(ex)");
                         throw new RuntimeException(ex);
                     }
                     break;
                 case "Exit Stickies":
+                    LogService.info("Exit Stickies triggered. Ending Program.");
+                    LogService.info("Goodbye!");
                     System.exit(0); // Kill program
                     break;
                 default:

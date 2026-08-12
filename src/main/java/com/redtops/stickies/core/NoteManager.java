@@ -7,6 +7,8 @@ import com.redtops.stickies.storage.StorageHandler;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import com.redtops.stickies.core.Logs.LogService;
+
 
 public class NoteManager {
     static ArrayList<Note> notes = new ArrayList<Note>(); // I guess??????
@@ -28,8 +30,11 @@ public class NoteManager {
         Note note = new Note(); // Object
         notes.add(note); // Creates note
         try {
+            LogService.info("deleteNote Triggered | Saving data.");
             saveAll(); // Triggers NoteMGR's saveAll Function
+            LogService.info("Saved.");
         } catch (SQLException e) {
+            LogService.critical("Something went wrong while saving! | RuntimeException");
             throw new RuntimeException(e);
         }
         return note;
@@ -40,8 +45,11 @@ public class NoteManager {
             if (note.getId().equals(id)) {
                 notes.remove(note);
                 try {
+                    LogService.info("deleteNote Triggered | Saving data.");
                     saveAll();
+                    LogService.info("Saved.");
                 } catch (SQLException e) {
+                    LogService.critical("Something went wrong while saving! | RuntimeException");
                     throw new RuntimeException(e);
                 }
                 break;
