@@ -1,6 +1,7 @@
 package com.batista.stickies.storage;
 
 import com.batista.stickies.core.Note;
+import com.batista.stickies.core.Logs.LogService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,6 +23,7 @@ public class StorageHandler {
 
     // Database Initialization
     public void initDB() throws SQLException {
+        LogService.info("Initializing Database.");
         String sql = "CREATE TABLE IF NOT EXISTS Notes (" +
                 "id TEXT PRIMARY KEY," +
                 "content TEXT," +

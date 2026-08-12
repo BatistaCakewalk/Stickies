@@ -4,30 +4,25 @@ package com.batista.stickies.core.Logs;
 // Java Imports
 import static java.lang.System.*;
 
-        import java.io.File;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-
 public class LogService {
 
-    private static File logFile;
+    private static final File logFile;
     // I/O
     static {
-        // Variables
         String appData = System.getenv("APPDATA");
         String logsDir = appData + "\\Stickies\\logs\\";
-
-        File dir = new File(logsDir); // Object
+        File dir = new File(logsDir);
         logFile = new File(logsDir + TimeLog.getFileTime() + ".log");
-
-        if (!dir.exists()) {
-            dir.mkdirs(); // Makes Directory
-        }
-
+        if (!dir.exists()) { dir.mkdirs(); }
         try {
             logFile.createNewFile();
+            LogService.info("New log file created.");
         } catch (IOException e) {
+            LogService.critical("Something went wrong while writing! | RuntimeException");
             throw new RuntimeException(e);
         }
     }
@@ -35,8 +30,11 @@ public class LogService {
     // The one private method for all printing.
     private static void log(LogLevel level, String message) throws IOException {
         out.println("[" + TimeLog.getTime() + "] [" + level.getLabel() + "] " + message);
-        new FileWriter(logFile, true);
+        try (FileWriter writer = new FileWriter(logFile, true)) {
+            writer.write("[" + TimeLog.getTime() + "] [" + level.getLabel() + "] " + message + "\n");
+        }
     }
+
     // INFO
     public static void info(String message) {
         try {

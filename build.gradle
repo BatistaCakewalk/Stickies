@@ -4,7 +4,7 @@ plugins {
 }
 
 application {
-    mainClass = 'com.redtops.stickies.Main'
+    mainClass = 'com.batista.stickies.Main'
 }
 
 group = 'org.example'
