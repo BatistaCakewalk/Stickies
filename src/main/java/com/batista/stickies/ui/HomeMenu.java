@@ -80,14 +80,28 @@ public class HomeMenu extends JFrame {
         LogService.debug("titleBar built.");
 
         // --- MAIN CONTENT ---
-        JPanel content = new JPanel();
+        JPanel content = new JPanel(new BorderLayout()) {
+            private Image decoImg;
+            {
+                try {
+                    decoImg = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesGray.png")))
+                            .getScaledInstance(340, 340, Image.SCALE_SMOOTH);
+                } catch (Exception e) {}
+            }
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (decoImg != null) {
+                    g.drawImage(decoImg, getWidth() - 280, getHeight() - 260, null);
+                }
+            }
+        };
         content.setBackground(BG);
-        content.setLayout(new BorderLayout());
         content.setBorder(new EmptyBorder(24, 32, 16, 32));
 
         // -- HEADER (avatar + greeting + username) --
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
-        header.setBackground(BG);
+        header.setOpaque(false);
 
         // Avatar: load cross-platform OS account picture, hide on failure
         String username = System.getProperty("user.name");
@@ -106,7 +120,7 @@ public class HomeMenu extends JFrame {
 
         // Greeting + username stacked vertically
         JPanel greetingPanel = new JPanel();
-        greetingPanel.setBackground(BG);
+        greetingPanel.setOpaque(false);
         greetingPanel.setLayout(new BoxLayout(greetingPanel, BoxLayout.Y_AXIS));
 
         JLabel greetingLabel = new JLabel(getGreeting() + " " + username + "!");
@@ -119,12 +133,12 @@ public class HomeMenu extends JFrame {
 
         // -- CENTER: Recent Notes + decorative sticky notes --
         JPanel center = new JPanel(new BorderLayout());
-        center.setBackground(BG);
+        center.setOpaque(false);
         center.setBorder(new EmptyBorder(24, 0, 0, 0));
 
         // Recent notes panel (left)
         JPanel recentPanel = new JPanel();
-        recentPanel.setBackground(BG);
+        recentPanel.setOpaque(false);
         recentPanel.setLayout(new BoxLayout(recentPanel, BoxLayout.Y_AXIS));
 
         JLabel recentTitle = new JLabel("Recent notes.");
@@ -159,22 +173,7 @@ public class HomeMenu extends JFrame {
 
         center.add(recentPanel, BorderLayout.WEST);
 
-        // Decorative sticky notes (bottom-right, like the mockup)
-        JPanel decoWrapper = new JPanel(new BorderLayout());
-        decoWrapper.setOpaque(false);
-        decoWrapper.setPreferredSize(new Dimension(340, 300));
-        JLabel deco = new JLabel();
-        try {
-            Image decoImg = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesGray.png")));
-            deco.setIcon(new ImageIcon(decoImg.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
-        } catch (Exception ex) {
-            LogService.warn("Failed to load decorative StickiesGray.png | " + ex.getMessage());
-        }
-        deco.setHorizontalAlignment(SwingConstants.RIGHT);
-        deco.setVerticalAlignment(SwingConstants.BOTTOM);
-        deco.setBorder(new EmptyBorder(0, 0, 16, 16));
-        decoWrapper.add(deco, BorderLayout.SOUTH);
-        center.add(decoWrapper, BorderLayout.EAST);
+        // Decorative sticky notes are now painted by the main content panel
 
         content.add(center, BorderLayout.CENTER);
         add(content, BorderLayout.CENTER);
@@ -206,10 +205,10 @@ public class HomeMenu extends JFrame {
 
         // Gray sticky icon thumbnail
         JLabel thumb = new JLabel();
-        thumb.setPreferredSize(new Dimension(64, 64));
+        thumb.setPreferredSize(new Dimension(36, 36));
         try {
             Image grayIcon = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesGray.png")));
-            thumb.setIcon(new ImageIcon(grayIcon.getScaledInstance(64, 64, Image.SCALE_SMOOTH)));
+            thumb.setIcon(new ImageIcon(grayIcon.getScaledInstance(36, 36, Image.SCALE_SMOOTH)));
         } catch (Exception ex) {
             LogService.warn("makeNoteCard: failed to load StickiesGray.png | " + ex.getMessage());
         }
