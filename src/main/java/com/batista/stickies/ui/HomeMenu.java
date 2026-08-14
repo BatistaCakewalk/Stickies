@@ -160,31 +160,21 @@ public class HomeMenu extends JFrame {
         center.add(recentPanel, BorderLayout.WEST);
 
         // Decorative sticky notes (bottom-right, like the mockup)
-        JPanel deco = new JPanel(null) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // Back note
-                g2.setColor(new Color(0x4a4a4a));
-                drawRotatedRect(g2, 80, 40, 160, 160, -12);
-                // Middle note
-                g2.setColor(new Color(0x555555));
-                drawRotatedRect(g2, 50, 60, 160, 160, 5);
-                // Front note
-                g2.setColor(new Color(0x606060));
-                drawRotatedRect(g2, 110, 70, 160, 160, -3);
-            }
-            private void drawRotatedRect(Graphics2D g2, int x, int y, int w, int h, int deg) {
-                g2.rotate(Math.toRadians(deg), x + w / 2.0, y + h / 2.0);
-                g2.fillRoundRect(x, y, w, h, 8, 8);
-                g2.rotate(-Math.toRadians(deg), x + w / 2.0, y + h / 2.0);
-            }
-        };
-        deco.setOpaque(false);
-        deco.setPreferredSize(new Dimension(340, 300));
-        center.add(deco, BorderLayout.EAST);
+        JPanel decoWrapper = new JPanel(new BorderLayout());
+        decoWrapper.setOpaque(false);
+        decoWrapper.setPreferredSize(new Dimension(340, 300));
+        JLabel deco = new JLabel();
+        try {
+            Image decoImg = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesGray.png")));
+            deco.setIcon(new ImageIcon(decoImg.getScaledInstance(256, 256, Image.SCALE_SMOOTH)));
+        } catch (Exception ex) {
+            LogService.warn("Failed to load decorative StickiesGray.png | " + ex.getMessage());
+        }
+        deco.setHorizontalAlignment(SwingConstants.RIGHT);
+        deco.setVerticalAlignment(SwingConstants.BOTTOM);
+        deco.setBorder(new EmptyBorder(0, 0, 16, 16));
+        decoWrapper.add(deco, BorderLayout.SOUTH);
+        center.add(decoWrapper, BorderLayout.EAST);
 
         content.add(center, BorderLayout.CENTER);
         add(content, BorderLayout.CENTER);
@@ -216,10 +206,10 @@ public class HomeMenu extends JFrame {
 
         // Gray sticky icon thumbnail
         JLabel thumb = new JLabel();
-        thumb.setPreferredSize(new Dimension(44, 44));
+        thumb.setPreferredSize(new Dimension(64, 64));
         try {
             Image grayIcon = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesGray.png")));
-            thumb.setIcon(new ImageIcon(grayIcon.getScaledInstance(44, 44, Image.SCALE_SMOOTH)));
+            thumb.setIcon(new ImageIcon(grayIcon.getScaledInstance(64, 64, Image.SCALE_SMOOTH)));
         } catch (Exception ex) {
             LogService.warn("makeNoteCard: failed to load StickiesGray.png | " + ex.getMessage());
         }
