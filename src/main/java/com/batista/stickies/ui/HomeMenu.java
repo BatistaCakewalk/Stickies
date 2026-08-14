@@ -226,17 +226,15 @@ public class HomeMenu extends JFrame {
         card.setMaximumSize(new Dimension(280, 56));
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Colored sticky icon
-        JPanel thumb = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.setColor(Color.decode(note.getColor()));
-                g.fillRoundRect(0, 0, getWidth(), getHeight(), 4, 4);
-            }
-        };
+        // Gray sticky icon thumbnail
+        JLabel thumb = new JLabel();
         thumb.setPreferredSize(new Dimension(36, 36));
-        thumb.setOpaque(false);
+        try {
+            Image grayIcon = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesGray.png")));
+            thumb.setIcon(new ImageIcon(grayIcon.getScaledInstance(36, 36, Image.SCALE_SMOOTH)));
+        } catch (Exception ex) {
+            LogService.warn("makeNoteCard: failed to load StickiesGray.png | " + ex.getMessage());
+        }
         card.add(thumb, BorderLayout.WEST);
 
         // Note preview text
