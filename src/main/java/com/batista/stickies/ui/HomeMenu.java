@@ -86,33 +86,21 @@ public class HomeMenu extends JFrame {
         content.setBorder(new EmptyBorder(24, 32, 16, 32));
 
         // -- HEADER (avatar + greeting + username) --
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 16, 0));
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
         header.setBackground(BG);
 
-        // Avatar: try to load Windows account picture, hide on failure
+        // Avatar: load cross-platform OS account picture, hide on failure
         String username = System.getProperty("user.name");
         LogService.info("OS username fetched | user=" + username);
-        String avatarPath = "C:\\Users\\" + username + "\\AppData\\Roaming\\Microsoft\\Windows\\AccountPictures";
-        java.io.File avatarDir = new java.io.File(avatarPath);
         JLabel avatarLabel = new JLabel();
-        avatarLabel.setPreferredSize(new Dimension(64, 64));
-        boolean avatarLoaded = false;
-        if (avatarDir.exists() && avatarDir.isDirectory()) {
-            java.io.File[] pics = avatarDir.listFiles((d, n) -> n.endsWith(".png") || n.endsWith(".jpg"));
-            if (pics != null && pics.length > 0) {
-                try {
-                    BufferedImage raw = ImageIO.read(pics[0]);
-                    avatarLabel.setIcon(new ImageIcon(makeCircular(raw, 64)));
-                    avatarLoaded = true;
-                    LogService.info("Avatar loaded from AccountPictures.");
-                } catch (Exception ex) {
-                    LogService.warn("Avatar load failed | " + ex.getMessage());
-                }
-            }
-        }
-        if (!avatarLoaded) {
-            LogService.info("No avatar found — hiding avatar label.");
+        avatarLabel.setPreferredSize(new Dimension(80, 80));
+        Image avatarImg = loadAvatar(80);
+        if (avatarImg != null) {
+            avatarLabel.setIcon(new ImageIcon(avatarImg));
+            LogService.info("Avatar loaded successfully.");
+        } else {
             avatarLabel.setVisible(false);
+            LogService.info("No avatar found — hiding avatar label.");
         }
         header.add(avatarLabel);
 
@@ -122,7 +110,7 @@ public class HomeMenu extends JFrame {
         greetingPanel.setLayout(new BoxLayout(greetingPanel, BoxLayout.Y_AXIS));
 
         JLabel greetingLabel = new JLabel(getGreeting() + " " + username + "!");
-        greetingLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        greetingLabel.setFont(new Font("Segoe UI", Font.BOLD, 36));
         greetingLabel.setForeground(FG_WHITE);
         greetingPanel.add(greetingLabel);
 
@@ -140,7 +128,7 @@ public class HomeMenu extends JFrame {
         recentPanel.setLayout(new BoxLayout(recentPanel, BoxLayout.Y_AXIS));
 
         JLabel recentTitle = new JLabel("Recent notes.");
-        recentTitle.setFont(new Font("Arial", Font.BOLD, 16));
+        recentTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         recentTitle.setForeground(FG_WHITE);
         recentTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         recentPanel.add(recentTitle);
@@ -206,8 +194,8 @@ public class HomeMenu extends JFrame {
         statusBar.setBackground(BG_DARK);
 
         JLabel memLabel = new JLabel();
-        memLabel.setFont(new Font("Monospaced", Font.PLAIN, 11));
-        memLabel.setForeground(FG_GRAY);
+        memLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        memLabel.setForeground(FG_WHITE);
         updateMemLabel(memLabel);
         statusBar.add(memLabel);
 
@@ -228,10 +216,10 @@ public class HomeMenu extends JFrame {
 
         // Gray sticky icon thumbnail
         JLabel thumb = new JLabel();
-        thumb.setPreferredSize(new Dimension(36, 36));
+        thumb.setPreferredSize(new Dimension(44, 44));
         try {
             Image grayIcon = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesGray.png")));
-            thumb.setIcon(new ImageIcon(grayIcon.getScaledInstance(36, 36, Image.SCALE_SMOOTH)));
+            thumb.setIcon(new ImageIcon(grayIcon.getScaledInstance(44, 44, Image.SCALE_SMOOTH)));
         } catch (Exception ex) {
             LogService.warn("makeNoteCard: failed to load StickiesGray.png | " + ex.getMessage());
         }
@@ -246,11 +234,11 @@ public class HomeMenu extends JFrame {
         if (preview.length() > 28) preview = preview.substring(0, 28) + "…";
 
         JLabel nameLabel = new JLabel(preview);
-        nameLabel.setFont(new Font("Arial", Font.BOLD, 13));
+        nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         nameLabel.setForeground(FG_WHITE);
 
         JLabel sizeLabel = new JLabel(note.getWidth() + "x" + note.getHeight());
-        sizeLabel.setFont(new Font("Arial", Font.PLAIN, 11));
+        sizeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         sizeLabel.setForeground(FG_GRAY);
 
         textPanel.add(nameLabel);
@@ -266,6 +254,37 @@ public class HomeMenu extends JFrame {
         long used = mem.getHeapMemoryUsage().getUsed() / (1024 * 1024);
         long max  = mem.getHeapMemoryUsage().getMax()  / (1024 * 1024);
         label.setText("JVM Memory: " + used + "MB / " + max + "MB");
+    }
+
+    private Image loadAvatar(int size) {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        String username = System.getProperty("user.name");
+        java.util.List<java.io.File> candidates = new java.util.ArrayList<>();
+
+        if (os.contains("win")) {
+            java.io.File dir = new java.io.File(
+                "C:\\Users\\" + username +
+                "\\AppData\\Roaming\\Microsoft\\Windows\\AccountPictures");
+            if (dir.isDirectory()) {
+                java.io.File[] pics = dir.listFiles(
+                    (d, n) -> n.endsWith(".png") || n.endsWith(".jpg"));
+                if (pics != null)
+                    java.util.Collections.addAll(candidates, pics);
+            }
+        } else {
+            // macOS and Linux — ~/.face is set by most desktop environments (GNOME, KDE, etc.)
+            java.io.File face = new java.io.File(
+                System.getProperty("user.home") + "/.face");
+            if (face.exists()) candidates.add(face);
+        }
+
+        for (java.io.File f : candidates) {
+            try {
+                BufferedImage raw = ImageIO.read(f);
+                if (raw != null) return makeCircular(raw, size);
+            } catch (Exception ignored) {}
+        }
+        return null; // caller hides avatarLabel when null
     }
 
     private String getGreeting() {
