@@ -39,8 +39,8 @@ public class HomeMenu extends JFrame {
 
     private void initHomeWindow() throws IOException {
         LogService.info("initHomeWindow called.");
-        windowData.setWidth(600);
-        windowData.setHeight(700);
+        windowData.setWidth(700);
+        windowData.setHeight(600);
         setSize(windowData.getWidth(), windowData.getHeight());
         setLocation(windowData.getCordX(), windowData.getCordY());
         setAlwaysOnTop(false);
@@ -69,13 +69,15 @@ public class HomeMenu extends JFrame {
         iconWrapper.setOpaque(false);
 
         Image image = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesIcon.png")));
-        Image scaled = image.getScaledInstance(12, 18, Image.SCALE_SMOOTH);
+        Image scaled = image.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
         LogService.debug("StickiesIcon loaded and scaled.");
 
+        // Note to self: iconWrapper sits on the LEFT of titleBar.
+        // EmptyBorder(top, left, bottom, right) gives it breathing room from the edge.
         iconWrapper.setIcon(new ImageIcon(scaled));
+        iconWrapper.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
         titleBar.add(iconWrapper, BorderLayout.WEST);
-        iconWrapper.add(titleBar, BorderLayout.WEST);
-
+        
         mainSection = new JPanel();
         mainSection.setPreferredSize(new Dimension(getWidth(), 20));
         mainSection.setBackground(Color.decode(windowData.getColor()));
