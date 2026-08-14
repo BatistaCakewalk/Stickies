@@ -1,37 +1,17 @@
 package com.batista.stickies.core;
-/** Stickies | Note.java
- * Class file for holding data. Notes needs to store the following.
- *
- * - unique identifier (String)
- * - content | The use's text and such. (Also string. What else do you think?)
- * - Width and Height. (int. Long is unnecessary)
- * - color (string ofc. Maybe a set. #FFEB3B etc.)
- * x and y cords for where should the note be placed upon open. (Int)
- *
- * Last Updated: 8/9/2026 9:58 PM
- * */
 
+import com.batista.stickies.core.Logs.LogService;
 import java.util.UUID;
 
 public class Note {
-    // Variables
     private String id;
     private String content;
     private String color;
-
-    // IN PIXELS
     private int width;
     private int height;
-    // POS
     private int x;
     private int y;
 
-    // Default Configuration
-    /* When you create a note, this is what Stickies will use
-    *  to give you a fresh note to use. Same Dimensions as always.
-    *  NoteManager.java and StoragHandler.java uses this to create a Note Object
-    *  to make methods like createNote() and etc.
-    *  - Batista 8/6/2026 */
     public Note() {
         this.id = UUID.randomUUID().toString();
         this.content = "";
@@ -40,18 +20,38 @@ public class Note {
         this.width = 250;
         this.height = 250;
         this.color = "#FFEB3B";
+        LogService.info("Note created with id=" + this.id);
     }
 
-    // Setters. (So many public voids xd)
-    public void setId(String id) { this.id = id; }
-    public void setContent(String content) { this.content = content; }
-    public void setColor(String color) { this.color = color; }
-    public void setWidth(int width) { this.width = width; }
-    public void setHeight(int height) { this.height = height; }
-    public void setCordX(int x) { this.x = x; }
-    public void setCordY(int y) { this.y = y; }
+    public void setId(String id) {
+        LogService.info("Note.setId called | id=" + id);
+        this.id = id;
+    }
+    public void setContent(String content) {
+        LogService.debug("Note.setContent called | id=" + this.id + " | length=" + (content != null ? content.length() : 0));
+        this.content = content;
+    }
+    public void setColor(String color) {
+        LogService.info("Note.setColor called | id=" + this.id + " | color=" + color);
+        this.color = color;
+    }
+    public void setWidth(int width) {
+        LogService.debug("Note.setWidth called | id=" + this.id + " | width=" + width);
+        this.width = width;
+    }
+    public void setHeight(int height) {
+        LogService.debug("Note.setHeight called | id=" + this.id + " | height=" + height);
+        this.height = height;
+    }
+    public void setCordX(int x) {
+        LogService.debug("Note.setCordX called | id=" + this.id + " | x=" + x);
+        this.x = x;
+    }
+    public void setCordY(int y) {
+        LogService.debug("Note.setCordY called | id=" + this.id + " | y=" + y);
+        this.y = y;
+    }
 
-    // Getters
     public String getId() { return id; }
     public String getContent() { return content; }
     public String getColor() { return color; }
@@ -59,5 +59,4 @@ public class Note {
     public int getHeight() { return height; }
     public int getCordX() { return x; }
     public int getCordY() { return y; }
-
 }

@@ -8,13 +8,11 @@
  *  Last updated: 8/6/2026 (9:51 PM)
  * */
 
-
 package com.batista.stickies.ui;
-
-// Java Imports
 
 import com.batista.stickies.core.Note;
 import com.batista.stickies.core.NoteManager;
+import com.batista.stickies.core.Logs.LogService;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -29,7 +27,6 @@ import java.util.Objects;
 
 public class NoteWindow extends JFrame {
 
-    // Variables
     private final Note note;
     private final NoteManager noteManager;
     private JTextArea textArea;
@@ -39,64 +36,53 @@ public class NoteWindow extends JFrame {
     private int startW, startH;
 
     public NoteWindow(Note note, NoteManager noteManager) throws IOException {
-        // I think? (I hate OOP)
+        LogService.info("NoteWindow constructor called | noteId=" + note.getId());
         this.note = note;
         this.noteManager = noteManager;
-
-       // Initialization Phase.
-       initWindow(); // Creates Sticky Note GUI
-       initComponents(); // Required Components
-       makeDraggable(); // Execute dragging work.
-       makeSizeable(); // Makes rescaling work
+        initWindow();
+        initComponents();
+        makeDraggable();
+        makeSizeable();
+        LogService.info("NoteWindow fully initialized | noteId=" + note.getId());
     }
 
-    /** Window properties initWindow()
-    * This Method is used to create an actual Sticky Note window
-    *  using Swing. It creates a JFrame for the textbox area, topbar and an invisible
-    *  dragging area to rescale. It also has 2 JButtons used to discard the note
-    *  and to always keep said note on top (Aka Always On Top).
-    * <p>
-    *  - Batista 8/6/2026 */
     private void initWindow() throws IOException {
-        setSize(note.getWidth(), note.getHeight()); // From Note.Java
-        setLocation(note.getCordX(), note.getCordY()); // From Note.Java
+        LogService.info("initWindow called | noteId=" + note.getId());
+        setSize(note.getWidth(), note.getHeight());
+        setLocation(note.getCordX(), note.getCordY());
         setAlwaysOnTop(false);
         setUndecorated(true);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setType(Type.UTILITY);
 
-        // Source - https://stackoverflow.com/a/58912396
-        // Posted by Arvind Kumar Avinash
         Image image = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/Pin.png")));
         Image scaled = image.getScaledInstance(12, 18, Image.SCALE_SMOOTH);
+        LogService.debug("Pin icon loaded and scaled.");
 
-        // titleBar Configuration
         titleBar = new JPanel();
         titleBar.setPreferredSize(new Dimension(getWidth(), 32));
-        titleBar.setBackground(Color.decode(note.getColor()).brighter()); // brighter color here
+        titleBar.setBackground(Color.decode(note.getColor()).brighter());
         titleBar.setLayout(new BorderLayout());
+        add(titleBar, BorderLayout.NORTH);
+        LogService.debug("titleBar added.");
 
-        add(titleBar, BorderLayout.NORTH); // Creates titleBar
-
-        // closeButton Configuration
-        JButton closeButton = new JButton("X"); // The Button itself
-        closeButton.addActionListener(e -> dispose()); // Action event.
+        JButton closeButton = new JButton("X");
+        closeButton.addActionListener(e -> {
+            LogService.info("closeButton clicked | noteId=" + note.getId() + " | disposing window.");
+            dispose();
+        });
         closeButton.setFocusable(false);
         closeButton.setBorderPainted(false);
         closeButton.setContentAreaFilled(false);
-        titleBar.add(closeButton,BorderLayout.EAST); // Creates closeButton and adds it to the RIGHT of the title.
+        titleBar.add(closeButton, BorderLayout.EAST);
 
-        // alwaysOnTopButton Configuration
-        JButton alwaysOnTopButton = new JButton(); // The Button itself
-        alwaysOnTopButton.setIcon(new ImageIcon(scaled)); // Applies pin.png to the icon.
-
-        /** Lambda Function addActionListener(e -> setAlwaysOnTop(!isAlwaysOnTop()));
-         *  Simply checks if the value is True or false and sets accordingly.
-         *  Nothing major about it.
-         *  <p>
-         *  - Batista 8/6/2026 9:41 PM
-         * */
-        alwaysOnTopButton.addActionListener(e -> setAlwaysOnTop(!isAlwaysOnTop()));
+        JButton alwaysOnTopButton = new JButton();
+        alwaysOnTopButton.setIcon(new ImageIcon(scaled));
+        alwaysOnTopButton.addActionListener(e -> {
+            boolean newState = !isAlwaysOnTop();
+            LogService.info("alwaysOnTopButton clicked | noteId=" + note.getId() + " | alwaysOnTop=" + newState);
+            setAlwaysOnTop(newState);
+        });
         alwaysOnTopButton.setFocusable(false);
         alwaysOnTopButton.setBorderPainted(false);
         alwaysOnTopButton.setContentAreaFilled(false);
@@ -104,29 +90,20 @@ public class NoteWindow extends JFrame {
         JPanel buttonWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
         buttonWrapper.setOpaque(false);
         titleBar.add(buttonWrapper, BorderLayout.WEST);
-        buttonWrapper.add(alwaysOnTopButton,BorderLayout.WEST);
+        buttonWrapper.add(alwaysOnTopButton, BorderLayout.WEST);
 
-        // Dragging section and configuration
         dragSection = new JPanel();
         dragSection.setPreferredSize(new Dimension(getWidth(), 8));
-        dragSection.setOpaque(false); // REQUIRED CODE
-        add(dragSection, BorderLayout.SOUTH); // Adds it to the button
+        dragSection.setOpaque(false);
+        add(dragSection, BorderLayout.SOUTH);
+        LogService.debug("dragSection added.");
 
-
-        getContentPane().setBackground(
-                Color.decode(note.getColor())
-        );
+        getContentPane().setBackground(Color.decode(note.getColor()));
+        LogService.info("initWindow complete | noteId=" + note.getId());
     }
 
-    /** initComponments() Method
-     * Initializes the required components like text and DocumentListener.
-     * That's just it.
-     * <p>
-     * This gets initialized on the NoteWindow constructor above this code.
-     * - Batista 8/6/2026 9:11 PM
-     * */
     private void initComponents() {
-        // Text area
+        LogService.info("initComponents called | noteId=" + note.getId());
         textArea = new JTextArea(note.getContent());
         textArea.setOpaque(false);
         textArea.setLineWrap(true);
@@ -134,96 +111,93 @@ public class NoteWindow extends JFrame {
         textArea.setFont(new Font("Arial", Font.PLAIN, 14));
         textArea.setMargin(new Insets(4, 8, 4, 8));
         add(textArea, BorderLayout.CENTER);
+        LogService.debug("textArea added to layout.");
 
         textArea.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
+                LogService.debug("DocumentListener.insertUpdate | noteId=" + note.getId());
                 note.setContent(textArea.getText());
                 try {
                     noteManager.saveAll();
                 } catch (SQLException ex) {
+                    LogService.critical("insertUpdate: saveAll failed | " + ex.getMessage());
                     throw new RuntimeException(ex);
                 }
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
+                LogService.debug("DocumentListener.removeUpdate | noteId=" + note.getId());
                 note.setContent(textArea.getText());
                 try {
                     noteManager.saveAll();
                 } catch (SQLException ex) {
+                    LogService.critical("removeUpdate: saveAll failed | " + ex.getMessage());
                     throw new RuntimeException(ex);
                 }
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
+                LogService.debug("DocumentListener.changedUpdate | noteId=" + note.getId());
                 note.setContent(textArea.getText());
                 try {
                     noteManager.saveAll();
                 } catch (SQLException ex) {
+                    LogService.critical("changedUpdate: saveAll failed | " + ex.getMessage());
                     throw new RuntimeException(ex);
                 }
             }
         });
+        LogService.info("initComponents complete | noteId=" + note.getId());
     }
 
-    /** makeDraggable() Method
-     * This private method houses the required code and uses data from Note.java to make dragging sticky notes work.
-     * Using MouseAdapter, addMouseListener and MouseEvents
-     * to change the X and Y Cords of the sticky note window.
-     * <p>
-     * This gets initialized on the NoteWindow constructor above this code.
-     * - Batista 8/6/2026 7:42 PM
-     */
     private void makeDraggable() {
+        LogService.info("makeDraggable called | noteId=" + note.getId());
         titleBar.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                offsetX = e.getX(); // Obtains X Cords
-                offsetY = e.getY(); // Obtains Y Cords
+                offsetX = e.getX();
+                offsetY = e.getY();
+                LogService.debug("titleBar mousePressed | offsetX=" + offsetX + " offsetY=" + offsetY);
             }
         });
 
-        // Listener Event for obtaining Location Data and Saving to SQLite
         titleBar.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                note.setCordX(getLocation().x); // Get X Cords
-                note.setCordY(getLocation().y); // Get Y Cords
+                note.setCordX(getLocation().x);
+                note.setCordY(getLocation().y);
+                LogService.info("titleBar mouseReleased | noteId=" + note.getId() + " | x=" + note.getCordX() + " y=" + note.getCordY());
                 try {
-                    noteManager.saveAll(); // Saves position data
+                    noteManager.saveAll();
                 } catch (SQLException ex) {
+                    LogService.critical("makeDraggable mouseReleased: saveAll failed | " + ex.getMessage());
                     throw new RuntimeException(ex);
                 }
             }
         });
 
-        // Listener Event for moving Sticky Notes
         titleBar.addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                setLocation(e.getXOnScreen() - offsetX, e.getYOnScreen() - offsetY); // Sets the cords.
+                setLocation(e.getXOnScreen() - offsetX, e.getYOnScreen() - offsetY);
             }
         });
-
+        LogService.info("makeDraggable setup complete | noteId=" + note.getId());
     }
-    /** makeSizeable() Method
-     * This private method houses the required code and uses data from Note.java to make scaling sticky notes work.
-     * Using MouseAdapter, addMouseListener and MouseEvents
-     * to change the Width and Height of the sticky note window.
-     * <p>
-     * This gets initialized on the NoteWindow constructor above this code.
-     * - Batista 8/6/2026 7:47 PM
-     */
+
     private void makeSizeable() {
+        LogService.info("makeSizeable called | noteId=" + note.getId());
         dragSection.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 startW = getWidth();
                 startH = getHeight();
-                offsetX = e.getXOnScreen(); // Mouse X Position
-                offsetY = e.getYOnScreen(); // Mouse Y Position
+                offsetX = e.getXOnScreen();
+                offsetY = e.getYOnScreen();
+                LogService.debug("dragSection mousePressed | startW=" + startW + " startH=" + startH);
             }
         });
 
@@ -241,12 +215,15 @@ public class NoteWindow extends JFrame {
             public void mouseReleased(MouseEvent e) {
                 note.setWidth(getWidth());
                 note.setHeight(getHeight());
+                LogService.info("dragSection mouseReleased | noteId=" + note.getId() + " | w=" + note.getWidth() + " h=" + note.getHeight());
                 try {
                     noteManager.saveAll();
                 } catch (SQLException ex) {
+                    LogService.critical("makeSizeable mouseReleased: saveAll failed | " + ex.getMessage());
                     throw new RuntimeException(ex);
                 }
             }
         });
+        LogService.info("makeSizeable setup complete | noteId=" + note.getId());
     }
 }

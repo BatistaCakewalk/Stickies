@@ -1,66 +1,76 @@
-// I hate this Java code... MAS HELP ME!!!! AGHHHH
-
 package com.batista.stickies.core;
 
 import com.batista.stickies.storage.StorageHandler;
+import com.batista.stickies.core.Logs.LogService;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import com.batista.stickies.core.Logs.LogService;
-
 
 public class NoteManager {
-    static ArrayList<Note> notes = new ArrayList<Note>(); // I guess??????
-    static StorageHandler storageHandler; // Object
+    static ArrayList<Note> notes = new ArrayList<Note>();
+    static StorageHandler storageHandler;
 
     static {
+        LogService.info("NoteManager static block: initializing StorageHandler.");
         try {
             storageHandler = new StorageHandler();
+            LogService.info("StorageHandler initialized successfully.");
         } catch (IOException | SQLException e) {
+            LogService.critical("StorageHandler init failed | " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
 
     public NoteManager() throws SQLException {
+        LogService.info("NoteManager constructor called. Loading notes.");
         notes = storageHandler.loadNotes();
+        LogService.info("Notes loaded. Count=" + notes.size());
     }
 
     public Note createNote() {
-        Note note = new Note(); // Object
-        notes.add(note); // Creates note
+        LogService.info("createNote called.");
+        Note note = new Note();
+        notes.add(note);
+        LogService.info("Note added to list. Total notes=" + notes.size());
         try {
-            LogService.info("deleteNote Triggered | Saving data.");
-            saveAll(); // Triggers NoteMGR's saveAll Function
-            LogService.info("Saved.");
+            LogService.info("createNote: saving all notes.");
+            saveAll();
+            LogService.info("createNote: save complete.");
         } catch (SQLException e) {
-            LogService.critical("Something went wrong while saving! | RuntimeException");
+            LogService.critical("createNote: save failed | " + e.getMessage());
             throw new RuntimeException(e);
         }
         return note;
     }
 
     public void deleteNote(String id) {
+        LogService.info("deleteNote called | id=" + id);
         for (Note note : notes) {
             if (note.getId().equals(id)) {
                 notes.remove(note);
+                LogService.info("Note removed from list | id=" + id + " | remaining=" + notes.size());
                 try {
-                    LogService.info("deleteNote Triggered | Saving data.");
+                    LogService.info("deleteNote: saving all notes.");
                     saveAll();
-                    LogService.info("Saved.");
+                    LogService.info("deleteNote: save complete.");
                 } catch (SQLException e) {
-                    LogService.critical("Something went wrong while saving! | RuntimeException");
+                    LogService.critical("deleteNote: save failed | " + e.getMessage());
                     throw new RuntimeException(e);
                 }
                 break;
-            } // end if
-        } // end for
+            }
+        }
     }
+
     public void saveAll() throws SQLException {
+        LogService.debug("saveAll called. Saving " + notes.size() + " notes.");
         storageHandler.saveNotes(notes);
+        LogService.debug("saveAll complete.");
     }
 
     public ArrayList<Note> getNotes() {
+        LogService.debug("getNotes called. Returning " + notes.size() + " notes.");
         return notes;
     }
 }
