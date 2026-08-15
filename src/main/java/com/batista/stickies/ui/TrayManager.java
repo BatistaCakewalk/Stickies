@@ -1,5 +1,5 @@
 // Core
-package com.redtops.stickies.ui;
+package com.batista.stickies.ui;
 
 /* Class file for System Tray if applicable.
 *  Create a constructor
@@ -8,11 +8,13 @@ package com.redtops.stickies.ui;
 * */
 
 // Redtops Imports
-import com.redtops.stickies.core.Note;
-import com.redtops.stickies.core.NoteManager;
+import com.batista.stickies.core.Note;
+import com.batista.stickies.core.NoteManager;
+import com.batista.stickies.core.WindowData;
+import com.batista.stickies.core.Logs.LogService;
+
 // Java Imports
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
@@ -20,22 +22,17 @@ import java.io.IOException;
 public class TrayManager {
     // Variables
     private final NoteManager noteManager;
+    private final WindowData windowData = new WindowData();
+
 
     // Constructor
     public TrayManager(NoteManager noteManager) {
         this.noteManager = noteManager;
     }
 
-    // Get Function
-    public NoteManager getNoteManager() {
-        return noteManager;
-    }
-
     public void initTray() {
         // Variables
         TrayIcon trayIcon;
-        ActionListener actionListener = null;
-
 
         if (SystemTray.isSupported()) {
             SystemTray tray = SystemTray.getSystemTray();
@@ -86,6 +83,7 @@ public class TrayManager {
             trayIcon.setImageAutoSize(true);
 
             try {
+                LogService.info("Adding Stickies to System Tray.");
                 tray.add(trayIcon); // Adds Stickies into System Tray.
             } catch (AWTException e){
                 System.err.println(e);
@@ -108,15 +106,31 @@ public class TrayManager {
                     Note note = noteManager.createNote();
                     try {
                         new NoteWindow(note, noteManager).setVisible(true);
+                        LogService.info("Triggered New Note.");
                     } catch (IOException ex) {
+                        LogService.info("Something went wrong! RuntimeException(ex)");
+                        throw new RuntimeException(ex);
+                    }
+                    break;
+                case "Open main app.":
+                    try {
+                        LogService.info("'Open main app' triggered.");
+                        new HomeMenu(noteManager, windowData).setVisible(true);
+                    } catch (IOException ex) {
+                        LogService.info("Something went wrong! RuntimeException(ex)");
                         throw new RuntimeException(ex);
                     }
                     break;
                 case "Exit Stickies":
+                    LogService.info("Exit Stickies triggered. Ending Program.");
+                    LogService.info("Goodbye!");
                     System.exit(0); // Kill program
                     break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + e.getActionCommand());
             }
         };
         return listener;
     }
+
 }
