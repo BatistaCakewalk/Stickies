@@ -84,15 +84,27 @@ public class HomeMenu extends JFrame {
             private Image decoImg;
             {
                 try {
-                    decoImg = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesGray.png")))
-                            .getScaledInstance(340, 340, Image.SCALE_SMOOTH);
-                } catch (Exception e) {}
+                    BufferedImage raw = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesGray.png")));
+                    int newWidth = 340;
+                    int newHeight = (raw.getHeight() * newWidth) / raw.getWidth();
+                    decoImg = raw.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+                } catch (Exception e) {
+                    LogService.warn("Failed to load decorative StickiesGray.png for background | " + e.getMessage());
+                }
             }
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 if (decoImg != null) {
-                    g.drawImage(decoImg, getWidth() - 280, getHeight() - 260, null);
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    // Set opacity to 40%
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+                    
+                    // Draw in bottom right corner, pushed further down and right
+                    int x = getWidth() - decoImg.getWidth(null) + 80; 
+                    int y = getHeight() - decoImg.getHeight(null) + 90;
+                    g2.drawImage(decoImg, x, y, null);
+                    g2.dispose();
                 }
             }
         };
@@ -215,6 +227,14 @@ public class HomeMenu extends JFrame {
         card.add(thumb, BorderLayout.WEST);
 
         // Note preview text
+        JPanel textPanel = getJPanel(note);
+        card.add(textPanel, BorderLayout.CENTER);
+
+        LogService.debug("Note card built | id=" + note.getId());
+        return card;
+    }
+
+    private static JPanel getJPanel(Note note) {
         JPanel textPanel = new JPanel();
         textPanel.setBackground(BG_CARD);
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
@@ -232,10 +252,7 @@ public class HomeMenu extends JFrame {
 
         textPanel.add(nameLabel);
         textPanel.add(sizeLabel);
-        card.add(textPanel, BorderLayout.CENTER);
-
-        LogService.debug("Note card built | id=" + note.getId());
-        return card;
+        return textPanel;
     }
 
     private void updateMemLabel(JLabel label) {
