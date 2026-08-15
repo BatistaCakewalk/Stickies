@@ -10,6 +10,7 @@ import com.batista.stickies.core.Note;
 import com.batista.stickies.core.NoteManager;
 import com.batista.stickies.core.WindowData;
 import com.batista.stickies.core.Logs.LogService;
+import com.batista.stickies.storage.StorageHandler;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -22,6 +23,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
+import java.sql.SQLException;
 import java.util.Objects;
 
 public class HomeMenu extends JFrame {
@@ -231,6 +233,7 @@ public class HomeMenu extends JFrame {
         card.add(textPanel, BorderLayout.CENTER);
 
         LogService.debug("Note card built | id=" + note.getId());
+        noteClick(card, note);
         return card;
     }
 
@@ -334,5 +337,19 @@ public class HomeMenu extends JFrame {
             }
         });
         LogService.info("HomeMenu.makeDraggable setup complete.");
+    }
+
+    private void noteClick(JPanel card, Note note) {
+        LogService.info("noteClick called");
+        card.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                try {
+                    new NoteWindow(note, noteManager).setVisible(true);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
     }
 }

@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class NoteManager {
-    static ArrayList<Note> notes = new ArrayList<Note>();
+    static ArrayList<Note> notes = new ArrayList<>();
     static StorageHandler storageHandler;
 
     static {
@@ -67,6 +67,12 @@ public class NoteManager {
         LogService.debug("saveAll called. Saving " + notes.size() + " notes.");
         storageHandler.saveNotes(notes);
         LogService.debug("saveAll complete.");
+    }
+
+    public void loadNotes() throws SQLException {
+        LogService.debug("saveAll called. Loading " + notes.size() + " notes.");
+        storageHandler.loadNotes();
+        LogService.debug("load complete.");
     }
 
     public ArrayList<Note> getNotes() {
