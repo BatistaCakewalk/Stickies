@@ -12,7 +12,7 @@ public class Main {
     public static void main(String[] args) throws SQLException, IOException {
         LogService.info("com.batista.stickies.Main.main()");
         NoteManager manager = new NoteManager(); // Object
-        TrayManager tray = new TrayManager(manager); // Object
+        TrayManager tray = new TrayManager(); // Object
 //        Note note = manager.createNote();
 //
 //        NoteWindow window = new NoteWindow(note, manager);
