@@ -17,7 +17,6 @@ import com.batista.stickies.core.Note;
 import com.batista.stickies.core.NoteManager;
 import com.batista.stickies.core.WindowData;
 import com.batista.stickies.core.Logs.LogService;
-import com.batista.stickies.storage.StorageHandler;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

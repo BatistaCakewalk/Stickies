@@ -10,7 +10,7 @@ import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) throws SQLException, IOException {
-        LogService.info("Main Function called.");
+        LogService.info("com.batista.stickies.Main.main()");
         NoteManager manager = new NoteManager(); // Object
         TrayManager tray = new TrayManager(manager); // Object
 //        Note note = manager.createNote();

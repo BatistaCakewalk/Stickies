@@ -21,13 +21,17 @@ import java.io.IOException;
 
 public class TrayManager {
     // Variables
-    private final NoteManager noteManager;
     private final WindowData windowData = new WindowData();
 
+    private static final String ACTION_NEW_NOTE = "new_note";
+    private static final String ACTION_OPEN_NOTE = "open_note";
+    private static final String ACTION_OPEN_MAIN = "open_main";
+    private static final String ACTION_SETTINGS = "settings";
+    private static final String ACTION_EXIT = "exit";
 
     // Constructor
-    public TrayManager(NoteManager noteManager) {
-        this.noteManager = noteManager;
+    public TrayManager() {
+        // empty unless @batistacakewalk wants stuf
     }
 
     public void initTray() {
@@ -52,12 +56,17 @@ public class TrayManager {
 
             // Note Objects
             MenuItem newNoteItem = new MenuItem("New Note");
+            newNoteItem.setActionCommand(ACTION_NEW_NOTE);
             MenuItem openNoteItem = new MenuItem("Open Note");
+            openNoteItem.setActionCommand(ACTION_OPEN_NOTE);
 
             // General
             MenuItem openItem = new MenuItem("Open main app.");
+            openItem.setActionCommand(ACTION_OPEN_MAIN);
             MenuItem settingsItem = new MenuItem("Settings.");
+            settingsItem.setActionCommand(ACTION_SETTINGS);
             MenuItem exitItem = new MenuItem("Exit Stickies");
+            exitItem.setActionCommand(ACTION_EXIT);
 
             // ActionListener Notes
             newNoteItem.addActionListener(listener);
@@ -102,32 +111,35 @@ public class TrayManager {
         listener = e -> {
             // Execute Action here.
             switch (e.getActionCommand()) {
-                case "New Note":
-                    Note note = noteManager.createNote();
+                case ACTION_NEW_NOTE:
+                    Note note = NoteManager.getInstance().createNote();
                     try {
-                        new NoteWindow(note, noteManager).setVisible(true);
+                        new NoteWindow(note, NoteManager.getInstance()).setVisible(true);
                         LogService.info("Triggered New Note.");
                     } catch (IOException ex) {
                         LogService.info("Something went wrong! RuntimeException(ex)");
                         throw new RuntimeException(ex);
                     }
                     break;
-                case "Open main app.":
+                case ACTION_SETTINGS:
+
+                case ACTION_OPEN_MAIN:
                     try {
                         LogService.info("'Open main app' triggered.");
-                        new HomeMenu(noteManager, windowData).setVisible(true);
+                        new HomeMenu(NoteManager.getInstance(), windowData).setVisible(true);
                     } catch (IOException ex) {
                         LogService.info("Something went wrong! RuntimeException(ex)");
                         throw new RuntimeException(ex);
                     }
                     break;
-                case "Exit Stickies":
+                case ACTION_EXIT:
                     LogService.info("Exit Stickies triggered. Ending Program.");
                     LogService.info("Goodbye!");
                     System.exit(0); // Kill program
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + e.getActionCommand());
+                    // if you somehow get this error then how the fuck did you break the app :sob:
             }
         };
         return listener;
