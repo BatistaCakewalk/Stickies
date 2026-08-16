@@ -41,7 +41,7 @@ public class SettingsMenu extends JFrame {
         LogService.info("SettingsMenu fully initialized.");
     }
 
-    private void initSettingsWindow() throws IOException {
+    private void initSettingsWindow() {
         LogService.info("initSettingsWindow called.");
         setSize(750, 600);
         
