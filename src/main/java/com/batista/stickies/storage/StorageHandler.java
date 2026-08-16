@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 public class StorageHandler {
 
-    private final Connection connection;
+    private static Connection connection = null;
     private static StorageHandler instance;
     private static Path dbPath = null;
 
@@ -43,6 +43,7 @@ public class StorageHandler {
         connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
         LogService.info("JDBC connection established.");
         initDB();
+        initStateDB();
     }
 
     public static StorageHandler getInstance() {
@@ -62,6 +63,14 @@ public class StorageHandler {
                 ")";
         connection.createStatement().execute(sql);
         LogService.info("initDB complete.");
+    }
+
+    public void initStateDB() throws SQLException {
+        LogService.info("initStateDB called. Creating Notes table if not exists.");
+        String sql = "CREATE TABLE IF NOT EXISTS noteState (" +
+                "id TEXT PRIMARY KEY)";
+        connection.createStatement().execute(sql);
+        LogService.info("initStateDB complete.");
     }
 
     public void saveNotes(ArrayList<Note> notes) throws SQLException {
@@ -102,5 +111,29 @@ public class StorageHandler {
         }
         LogService.info("loadNotes complete. Loaded " + notes.size() + " notes.");
         return notes;
+    }
+
+    public static void handleNoteState(String noteId) throws SQLException {
+        LogService.info("handleNoteState called. Saving state.");
+        String sql = "INSERT OR REPLACE INTO noteState (id) VALUES (?)";
+
+        LogService.debug("Saving state | id=" + noteId);
+        PreparedStatement stmt = connection.prepareStatement(sql);
+        stmt.setString(1, noteId);
+        LogService.debug("State saved | id=" + noteId);
+
+        LogService.info("handleNoteState complete.");
+    }
+    public static void discardNoteState(String noteId) throws SQLException {
+        LogService.info("discardNoteState called. Discarding state.");
+        String sql = "DELETE FROM noteState WHERE id = ?";
+
+        LogService.debug("Discarding | id=" + noteId);
+        PreparedStatement stmt = connection.prepareStatement(sql);
+        stmt.setString(1, noteId);
+        stmt.executeUpdate();
+        LogService.debug("State discarded | id=" + noteId);
+
+        LogService.info("discardNoteState complete.");
     }
 }
