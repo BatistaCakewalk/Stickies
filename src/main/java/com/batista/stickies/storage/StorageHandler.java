@@ -9,14 +9,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 
 public class StorageHandler {
 
-    private Connection connection;
-    Path dbPath = null;
+    private final Connection connection;
+    private static StorageHandler instance;
+    private static Path dbPath = null;
 
     public StorageHandler() throws IOException, SQLException {
+        if (instance != null) {
+            throw new IllegalStateException("StorageHandler already initialized.");
+        }
+        instance = this;
+
         LogService.info("StorageHandler constructor called.");
         // IF STATEMENT CREATED BY BATISTA UNDER "12-multi-os-support" BRANCH
         if (SystemUtils.IS_OS_WINDOWS) {
@@ -38,6 +43,10 @@ public class StorageHandler {
         connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
         LogService.info("JDBC connection established.");
         initDB();
+    }
+
+    public static StorageHandler getInstance() {
+        return instance;
     }
 
     public void initDB() throws SQLException {

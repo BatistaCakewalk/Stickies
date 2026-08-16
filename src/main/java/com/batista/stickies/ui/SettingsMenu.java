@@ -1,4 +1,6 @@
 package com.batista.stickies.ui;
 
-public class SettingsMenu {
+import javax.swing.*;
+
+public class SettingsMenu extends JFrame {
 }

@@ -27,11 +27,14 @@ public class LogService {
         }
 
         File dir = logsPath.toFile();
-        logFile = new File(logsPath + File.separator + TimeLog.getFileTime() + ".log");
+        logFile = new File(logsPath + File.separator + TimeLog.getHumanFileTime() + ".log");
         if (!dir.exists()) { dir.mkdirs(); }
         try {
-            logFile.createNewFile();
-            LogService.info("New log file created.");
+            if (logFile.createNewFile()) {
+                LogService.info("New log file created.");
+            } else {
+                throw new RuntimeException("Log file already exists.");
+            }
         } catch (IOException e) {
             LogService.critical("Something went wrong while writing! | RuntimeException");
             throw new RuntimeException(e);
@@ -40,16 +43,16 @@ public class LogService {
 
     // The one private method for all printing.
     private static void log(LogLevel level, String message) throws IOException {
-        out.println("[" + TimeLog.getTime() + "] [" + level.getLabel() + "] " + message);
+        out.println("[" + TimeLog.getHumanTime() + "] [" + level.getLabel() + "] " + message);
         try (FileWriter writer = new FileWriter(logFile, true)) {
-            writer.write("[" + TimeLog.getTime() + "] [" + level.getLabel() + "] " + message + "\n");
+            writer.write("[" + TimeLog.getHumanTime() + "] [" + level.getLabel() + "] " + message + "\n");
         }
     }
 
     // INFO
     public static void info(String message) {
         try {
-            log(LogLevel.INFO, message); // Calls from log
+            log(LogLevel.INFO, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -57,7 +60,7 @@ public class LogService {
     // WARN
     public static void warn(String message) {
         try {
-            log(LogLevel.WARN, message); // Calls from log
+            log(LogLevel.WARN, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,7 +68,7 @@ public class LogService {
     // CRITICAL
     public static void critical(String message) {
         try {
-            log(LogLevel.CRITICAL, message); // Calls from log
+            log(LogLevel.CRITICAL, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -73,7 +76,7 @@ public class LogService {
     // FATAL
     public static void fatal(String message) {
         try {
-            log(LogLevel.FATAL, message); // Calls from log
+            log(LogLevel.FATAL, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -81,12 +84,9 @@ public class LogService {
     // DEBUG
     public static void debug(String message) {
         try {
-            log(LogLevel.DEBUG, message); // Calls from log
+            log(LogLevel.DEBUG, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-
-
 }
