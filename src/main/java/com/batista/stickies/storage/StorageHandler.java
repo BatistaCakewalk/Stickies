@@ -113,6 +113,19 @@ public class StorageHandler {
         return notes;
     }
 
+    public static ArrayList<String> loadNoteStates() throws SQLException {
+        LogService.info("loadNoteStates called.");
+        String sql = "SELECT * FROM noteState";
+        ResultSet rs = connection.createStatement().executeQuery(sql);
+        ArrayList<String> noteIds = new ArrayList<>();
+        while (rs.next()) {
+            noteIds.add(rs.getString("id"));
+        }
+        LogService.info("loadNoteStates complete. Loaded " + noteIds.size() + " note states.");
+        return noteIds;
+    }
+
+    // Handles the note if opened to restore it in case stickies terminates.
     public static void handleNoteState(String noteId) throws SQLException {
         LogService.info("handleNoteState called. Saving state.");
         String sql = "INSERT OR REPLACE INTO noteState (id) VALUES (?)";
@@ -125,6 +138,7 @@ public class StorageHandler {
 
         LogService.info("handleNoteState complete.");
     }
+    // Discards handling if the note closes. Will not open again unless it's saved in the tables
     public static void discardNoteState(String noteId) throws SQLException {
         LogService.info("discardNoteState called. Discarding state.");
         String sql = "DELETE FROM noteState WHERE id = ?";
