@@ -16,11 +16,14 @@ public class LogService {
         String appData = System.getenv("APPDATA");
         String logsDir = appData + "\\Stickies\\logs\\";
         File dir = new File(logsDir);
-        logFile = new File(logsDir + TimeLog.getFileTime() + ".log");
+        logFile = new File(logsDir + TimeLog.getHumanFileTime() + ".log");
         if (!dir.exists()) { dir.mkdirs(); }
         try {
-            logFile.createNewFile();
-            LogService.info("New log file created.");
+            if (logFile.createNewFile()) {
+                LogService.info("New log file created.");
+            } else {
+                throw new RuntimeException("Log file already exists.");
+            }
         } catch (IOException e) {
             LogService.critical("Something went wrong while writing! | RuntimeException");
             throw new RuntimeException(e);
@@ -29,9 +32,9 @@ public class LogService {
 
     // The one private method for all printing.
     private static void log(LogLevel level, String message) throws IOException {
-        out.println("[" + TimeLog.getTime() + "] [" + level.getLabel() + "] " + message);
+        out.println("[" + TimeLog.getHumanTime() + "] [" + level.getLabel() + "] " + message);
         try (FileWriter writer = new FileWriter(logFile, true)) {
-            writer.write("[" + TimeLog.getTime() + "] [" + level.getLabel() + "] " + message + "\n");
+            writer.write("[" + TimeLog.getHumanTime() + "] [" + level.getLabel() + "] " + message + "\n");
         }
     }
 
