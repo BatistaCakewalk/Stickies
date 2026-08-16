@@ -24,6 +24,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class NoteWindow extends JFrame {
@@ -110,11 +111,20 @@ public class NoteWindow extends JFrame {
 
         getContentPane().setBackground(Color.decode(note.getColor()));
         LogService.info("initWindow complete | noteId=" + note.getId());
-        StorageHandler.handleNoteState(this.note.getId());
+        StorageHandler.handleNoteState(this.note.getId()); // Function to save the state.
     }
 
-    private void initRestoredWindows() throws IOException {
-
+    public static void initRestoredWindows(NoteManager manager) throws SQLException, IOException {
+        ArrayList<String> savedIds = StorageHandler.loadNoteStates();
+        for (String savedId : savedIds) {
+            for (Note note : manager.getNotes()) {
+                if (note.getId().equals(savedId)) {
+                    NoteWindow window = new NoteWindow(note, manager);
+                    window.setVisible(true);
+                    break;
+                }
+            }
+        }
     }
 
     private void initComponents() {

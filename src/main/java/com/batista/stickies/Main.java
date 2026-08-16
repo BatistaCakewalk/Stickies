@@ -17,6 +17,7 @@ public class Main {
 //
 //        NoteWindow window = new NoteWindow(note, manager);
 //        window.setVisible(true);
+        com.batista.stickies.ui.NoteWindow.initRestoredWindows(manager);
         tray.initTray();
     }
 }
