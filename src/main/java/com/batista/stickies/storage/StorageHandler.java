@@ -120,6 +120,7 @@ public class StorageHandler {
         LogService.debug("Saving state | id=" + noteId);
         PreparedStatement stmt = connection.prepareStatement(sql);
         stmt.setString(1, noteId);
+        stmt.executeUpdate();
         LogService.debug("State saved | id=" + noteId);
 
         LogService.info("handleNoteState complete.");
