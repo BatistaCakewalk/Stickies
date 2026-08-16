@@ -9,12 +9,12 @@ import java.util.ArrayList;
 
 public class NoteManager {
     static ArrayList<Note> notes = new ArrayList<>();
-    static StorageHandler storageHandler;
+    private static NoteManager instance; // singleton class
 
     static {
         LogService.info("NoteManager static block: initializing StorageHandler.");
         try {
-            storageHandler = new StorageHandler();
+            new StorageHandler();
             LogService.info("StorageHandler initialized successfully.");
         } catch (IOException | SQLException e) {
             LogService.critical("StorageHandler init failed | " + e.getMessage());
@@ -23,9 +23,18 @@ public class NoteManager {
     }
 
     public NoteManager() throws SQLException {
+        if (instance != null) {
+            throw new IllegalArgumentException("NoteManager instance already exists.");
+        }
+        instance = this;
+
         LogService.info("NoteManager constructor called. Loading notes.");
-        notes = storageHandler.loadNotes();
+        notes = StorageHandler.getInstance().loadNotes();
         LogService.info("Notes loaded. Count=" + notes.size());
+    }
+
+    public static NoteManager getInstance() {
+        return instance;  // return singleton instance
     }
 
     public Note createNote() {
@@ -65,13 +74,13 @@ public class NoteManager {
 
     public void saveAll() throws SQLException {
         LogService.debug("saveAll called. Saving " + notes.size() + " notes.");
-        storageHandler.saveNotes(notes);
+        StorageHandler.getInstance().saveNotes(notes);
         LogService.debug("saveAll complete.");
     }
 
     public void loadNotes() throws SQLException {
         LogService.debug("saveAll called. Loading " + notes.size() + " notes.");
-        storageHandler.loadNotes();
+        StorageHandler.getInstance().loadNotes();
         LogService.debug("load complete.");
     }
 
