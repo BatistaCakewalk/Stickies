@@ -135,6 +135,9 @@ public class TrayManager {
                     LogService.info("Goodbye!");
                     System.exit(0); // Kill program
                     break;
+                case ACTION_SETTINGS:
+                case ACTION_OPEN_NOTE:
+                    break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + e.getActionCommand());
                     // if you somehow get this error then how the fuck did you break the app :sob:
