@@ -121,8 +121,6 @@ public class TrayManager {
                         throw new RuntimeException(ex);
                     }
                     break;
-                case ACTION_SETTINGS:
-
                 case ACTION_OPEN_MAIN:
                     try {
                         LogService.info("'Open main app' triggered.");
