@@ -4,19 +4,30 @@ package com.batista.stickies.core.Logs;
 // Java Imports
 import static java.lang.System.*;
 
+import org.apache.commons.lang3.SystemUtils;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class LogService {
 
     private static final File logFile;
     // I/O
     static {
-        String appData = System.getenv("APPDATA");
-        String logsDir = appData + "\\Stickies\\logs\\";
-        File dir = new File(logsDir);
-        logFile = new File(logsDir + TimeLog.getFileTime() + ".log");
+        Path logsPath;
+        if (SystemUtils.IS_OS_WINDOWS) {
+            String appData = System.getenv("APPDATA");
+            logsPath = Path.of(appData, "Stickies", "logs");
+        } else if (SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_LINUX) {
+            logsPath = Path.of(System.getProperty("user.home"), ".stickies", "logs");
+        } else {
+            logsPath = Path.of(System.getProperty("user.home"), ".stickies", "logs");
+        }
+
+        File dir = logsPath.toFile();
+        logFile = new File(logsPath + File.separator + TimeLog.getFileTime() + ".log");
         if (!dir.exists()) { dir.mkdirs(); }
         try {
             logFile.createNewFile();

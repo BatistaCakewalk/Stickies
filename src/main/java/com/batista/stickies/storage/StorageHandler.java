@@ -2,22 +2,37 @@ package com.batista.stickies.storage;
 
 import com.batista.stickies.core.Note;
 import com.batista.stickies.core.Logs.LogService;
+import org.apache.commons.lang3.SystemUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 public class StorageHandler {
 
-    private final Connection connection;
+    private Connection connection;
+    Path dbPath = null;
 
     public StorageHandler() throws IOException, SQLException {
         LogService.info("StorageHandler constructor called.");
-        String appData = System.getenv("APPDATA");
-        Path dbPath = Path.of(appData, "Stickies", "notes.sqlite");
-        LogService.info("DB path resolved | path=" + dbPath);
+        // IF STATEMENT CREATED BY BATISTA UNDER "12-multi-os-support" BRANCH
+        if (SystemUtils.IS_OS_WINDOWS) {
+            String appData = System.getenv("APPDATA");
+            dbPath = Path.of(appData, "Stickies", "notes.sqlite");
+        } else if (SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_LINUX) {
+            dbPath = Path.of(System.getProperty("user.home"), ".stickies", "notes.sqlite");
+        } else {
+            LogService.warn("I don't know what OS is this! Load/Saves are limited, Please report this in my Github.");
+        }
+
+        // simple null check
+        if (dbPath == null) {
+            throw new IOException("Unsupported OS");
+        }
+
         Files.createDirectories(dbPath.getParent());
         LogService.info("DB parent directories ensured.");
         connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
