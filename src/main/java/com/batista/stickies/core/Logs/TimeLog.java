@@ -9,16 +9,15 @@ package com.batista.stickies.core.Logs;
 // Importing all classes from java.time package
 import java.time.LocalDateTime;
 import java.time.format.*;
-import java.util.*;
 
 // Main class
 class TimeLog {
 
-    public static String getTime() {
+    public static String getHumanTime() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss a");
         return LocalDateTime.now().format(formatter);
     }
-    public static String getFileTime() {
+    public static String getHumanFileTime() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
         return LocalDateTime.now().format(formatter);
     }

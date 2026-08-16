@@ -12,8 +12,15 @@ import java.util.ArrayList;
 public class StorageHandler {
 
     private final Connection connection;
+    private static StorageHandler instance;
 
     public StorageHandler() throws IOException, SQLException {
+        if (instance != null) {
+            throw new IllegalStateException("StorageHandler already initialized.");
+        }
+
+        instance = this;
+
         LogService.info("StorageHandler constructor called.");
         String appData = System.getenv("APPDATA");
         Path dbPath = Path.of(appData, "Stickies", "notes.sqlite");
@@ -23,6 +30,10 @@ public class StorageHandler {
         connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
         LogService.info("JDBC connection established.");
         initDB();
+    }
+
+    public static StorageHandler getInstance() {
+        return instance;
     }
 
     public void initDB() throws SQLException {
