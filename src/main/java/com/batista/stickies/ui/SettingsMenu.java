@@ -236,7 +236,7 @@ public class SettingsMenu extends JFrame {
 
         JLabel githubLabel = new JLabel(" GitHub Repository");
         try {
-            Image githubIcon = ImageIO.read(new java.net.URL("https://github.githubassets.com/images/modules/logos_page/GitHub-Mark-Light.png"));
+            Image githubIcon = ImageIO.read(new java.net.URL("https://batista.parafieldstudios.com/Images/socials/Github.png"));
             githubLabel.setIcon(new ImageIcon(githubIcon.getScaledInstance(24, 24, Image.SCALE_SMOOTH)));
         } catch (Exception e) {
             // Fallback if no internet or failed to fetch
