@@ -65,6 +65,8 @@ public class HomeMenu extends JFrame {
         titleBar.setBackground(BG_DARK);
 
         Image appIcon = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesIcon.png")));
+        setIconImage(appIcon);
+        setTitle("Stickies Home");
         JLabel appIconLabel = new JLabel(new ImageIcon(appIcon.getScaledInstance(16, 16, Image.SCALE_SMOOTH)));
         appIconLabel.setBorder(new EmptyBorder(0, 8, 0, 8));
         titleBar.add(appIconLabel, BorderLayout.WEST);

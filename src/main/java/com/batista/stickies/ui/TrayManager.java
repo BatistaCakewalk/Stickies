@@ -136,6 +136,14 @@ public class TrayManager {
                     System.exit(0); // Kill program
                     break;
                 case ACTION_SETTINGS:
+                    try {
+                        LogService.info("'Settings' triggered.");
+                        new SettingsMenu(windowData).setVisible(true);
+                    } catch (IOException ex) {
+                        LogService.critical("Failed to open SettingsMenu | " + ex.getMessage());
+                        throw new RuntimeException(ex);
+                    }
+                    break;
                 case ACTION_OPEN_NOTE:
                     break;
                 default:
