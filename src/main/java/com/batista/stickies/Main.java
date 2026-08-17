@@ -15,20 +15,14 @@ import java.sql.SQLException;
 
 public class Main {
     public static void main(String[] args) throws SQLException, IOException {
-        FlatLightLaf.setup();
-
         LogService.info("com.batista.stickies.Main.main()");
-
-        try {
-            NoteManager manager = new NoteManager(); // Object
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        NoteManager manager = new NoteManager(); // Object
         TrayManager tray = new TrayManager(); // Object
-        //        Note note = manager.createNote();
-        //
-        //        NoteWindow window = new NoteWindow(note, manager);
-        //        window.setVisible(true);
+//        Note note = manager.createNote();
+//
+//        NoteWindow window = new NoteWindow(note, manager);
+//        window.setVisible(true);
+        com.batista.stickies.ui.NoteWindow.initRestoredWindows(manager);
         tray.initTray();
     }
 }

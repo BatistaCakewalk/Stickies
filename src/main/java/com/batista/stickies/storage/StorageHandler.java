@@ -2,6 +2,7 @@ package com.batista.stickies.storage;
 
 import com.batista.stickies.core.Note;
 import com.batista.stickies.core.Logs.LogService;
+import org.apache.commons.lang3.SystemUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,25 +12,42 @@ import java.util.ArrayList;
 
 public class StorageHandler {
 
-    private final Connection connection;
+    private static Connection connection = null;
     private static StorageHandler instance;
+    private static Path dbPath = null;
 
     public StorageHandler() throws IOException, SQLException {
         if (instance != null) {
             throw new IllegalStateException("StorageHandler already initialized.");
         }
-
         instance = this;
 
         LogService.info("StorageHandler constructor called.");
-        String appData = System.getenv("APPDATA");
-        Path dbPath = Path.of(appData, "Stickies", "notes.sqlite");
-        LogService.info("DB path resolved | path=" + dbPath);
+        // IF STATEMENT CREATED BY BATISTA UNDER "12-multi-os-support" BRANCH
+        if (SystemUtils.IS_OS_WINDOWS) {
+            String appData = System.getenv("APPDATA");
+            dbPath = Path.of(appData, "Stickies", "notes.sqlite");
+        } else if (SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_LINUX) {
+            dbPath = Path.of(System.getProperty("user.home"), ".stickies", "notes.sqlite");
+        } else {
+            LogService.warn("I don't know what OS is this! Load/Saves are limited, Please report this in my Github.");
+        }
+
+        // simple null check
+        if (dbPath == null) {
+            throw new IOException("Unsupported OS");
+        }
+
         Files.createDirectories(dbPath.getParent());
         LogService.info("DB parent directories ensured.");
         connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
         LogService.info("JDBC connection established.");
         initDB();
+        initStateDB();
+    }
+
+    public static StorageHandler getInstance() {
+        return instance;
     }
 
     public static StorageHandler getInstance() {
@@ -49,6 +67,14 @@ public class StorageHandler {
                 ")";
         connection.createStatement().execute(sql);
         LogService.info("initDB complete.");
+    }
+
+    public void initStateDB() throws SQLException {
+        LogService.info("initStateDB called. Creating Notes table if not exists.");
+        String sql = "CREATE TABLE IF NOT EXISTS noteState (" +
+                "id TEXT PRIMARY KEY)";
+        connection.createStatement().execute(sql);
+        LogService.info("initStateDB complete.");
     }
 
     public void saveNotes(ArrayList<Note> notes) throws SQLException {
@@ -89,5 +115,44 @@ public class StorageHandler {
         }
         LogService.info("loadNotes complete. Loaded " + notes.size() + " notes.");
         return notes;
+    }
+
+    public static ArrayList<String> loadNoteStates() throws SQLException {
+        LogService.info("loadNoteStates called.");
+        String sql = "SELECT * FROM noteState";
+        ResultSet rs = connection.createStatement().executeQuery(sql);
+        ArrayList<String> noteIds = new ArrayList<>();
+        while (rs.next()) {
+            noteIds.add(rs.getString("id"));
+        }
+        LogService.info("loadNoteStates complete. Loaded " + noteIds.size() + " note states.");
+        return noteIds;
+    }
+
+    // Handles the note if opened to restore it in case stickies terminates.
+    public static void handleNoteState(String noteId) throws SQLException {
+        LogService.info("handleNoteState called. Saving state.");
+        String sql = "INSERT OR REPLACE INTO noteState (id) VALUES (?)";
+
+        LogService.debug("Saving state | id=" + noteId);
+        PreparedStatement stmt = connection.prepareStatement(sql);
+        stmt.setString(1, noteId);
+        stmt.executeUpdate();
+        LogService.debug("State saved | id=" + noteId);
+
+        LogService.info("handleNoteState complete.");
+    }
+    // Discards handling if the note closes. Will not open again unless it's saved in the tables
+    public static void discardNoteState(String noteId) throws SQLException {
+        LogService.info("discardNoteState called. Discarding state.");
+        String sql = "DELETE FROM noteState WHERE id = ?";
+
+        LogService.debug("Discarding | id=" + noteId);
+        PreparedStatement stmt = connection.prepareStatement(sql);
+        stmt.setString(1, noteId);
+        stmt.executeUpdate();
+        LogService.debug("State discarded | id=" + noteId);
+
+        LogService.info("discardNoteState complete.");
     }
 }

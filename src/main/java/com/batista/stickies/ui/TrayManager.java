@@ -115,16 +115,30 @@ public class TrayManager {
             switch (e.getActionCommand()) {
                 case ACTION_NEW_NOTE:
                     Note note = NoteManager.getInstance().createNote();
-                    showOnEdt(() -> new NoteWindow(note, NoteManager.getInstance()), "Triggered New Note.");
+                    try {
+                        new NoteWindow(note, NoteManager.getInstance()).setVisible(true);
+                        LogService.info("Triggered New Note.");
+                    } catch (IOException ex) {
+                        LogService.info("Something went wrong! RuntimeException(ex)");
+                        throw new RuntimeException(ex);
+                    }
                     break;
                 case ACTION_OPEN_MAIN:
-                    LogService.info("'Open main app' triggered.");
-                    showOnEdt(() -> new HomeMenu(NoteManager.getInstance(), windowData), "Opened main app.");
+                    try {
+                        LogService.info("'Open main app' triggered.");
+                        new HomeMenu(NoteManager.getInstance(), windowData).setVisible(true);
+                    } catch (IOException ex) {
+                        LogService.info("Something went wrong! RuntimeException(ex)");
+                        throw new RuntimeException(ex);
+                    }
                     break;
                 case ACTION_EXIT:
                     LogService.info("Exit Stickies triggered. Ending Program.");
                     LogService.info("Goodbye!");
                     System.exit(0); // Kill program
+                    break;
+                case ACTION_SETTINGS:
+                case ACTION_OPEN_NOTE:
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + e.getActionCommand());

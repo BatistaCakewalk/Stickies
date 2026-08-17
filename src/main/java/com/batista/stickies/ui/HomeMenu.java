@@ -10,8 +10,6 @@ import com.batista.stickies.core.Note;
 import com.batista.stickies.core.NoteManager;
 import com.batista.stickies.core.WindowData;
 import com.batista.stickies.core.Logs.LogService;
-import com.batista.stickies.ui.components.BJButton;
-import com.formdev.flatlaf.FlatClientProperties;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

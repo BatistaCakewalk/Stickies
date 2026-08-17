@@ -4,19 +4,30 @@ package com.batista.stickies.core.Logs;
 // Java Imports
 import static java.lang.System.*;
 
+import org.apache.commons.lang3.SystemUtils;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class LogService {
 
     private static final File logFile;
     // I/O
     static {
-        String appData = System.getenv("APPDATA");
-        String logsDir = appData + "\\Stickies\\logs\\";
-        File dir = new File(logsDir);
-        logFile = new File(logsDir + TimeLog.getHumanFileTime() + ".log");
+        Path logsPath;
+        if (SystemUtils.IS_OS_WINDOWS) {
+            String appData = System.getenv("APPDATA");
+            logsPath = Path.of(appData, "Stickies", "logs");
+        } else if (SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_LINUX) {
+            logsPath = Path.of(System.getProperty("user.home"), ".stickies", "logs");
+        } else {
+            logsPath = Path.of(System.getProperty("user.home"), ".stickies", "logs");
+        }
+
+        File dir = logsPath.toFile();
+        logFile = new File(logsPath + File.separator + TimeLog.getHumanFileTime() + ".log");
         if (!dir.exists()) { dir.mkdirs(); }
         try {
             if (logFile.createNewFile()) {
@@ -41,7 +52,7 @@ public class LogService {
     // INFO
     public static void info(String message) {
         try {
-            log(LogLevel.INFO, message); // Calls from log
+            log(LogLevel.INFO, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -49,7 +60,7 @@ public class LogService {
     // WARN
     public static void warn(String message) {
         try {
-            log(LogLevel.WARN, message); // Calls from log
+            log(LogLevel.WARN, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -57,7 +68,7 @@ public class LogService {
     // CRITICAL
     public static void critical(String message) {
         try {
-            log(LogLevel.CRITICAL, message); // Calls from log
+            log(LogLevel.CRITICAL, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,22 +76,17 @@ public class LogService {
     // FATAL
     public static void fatal(String message) {
         try {
-            log(LogLevel.FATAL, message); // Calls from log
+            log(LogLevel.FATAL, message);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
     // DEBUG
     public static void debug(String message) {
-        if (System.getProperty("debug") != null) {
-            try {
-                log(LogLevel.DEBUG, message); // Calls from log
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        try {
+            log(LogLevel.DEBUG, message);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
-
-
-
 }
