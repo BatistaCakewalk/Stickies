@@ -10,6 +10,8 @@ import com.batista.stickies.core.Note;
 import com.batista.stickies.core.NoteManager;
 import com.batista.stickies.core.WindowData;
 import com.batista.stickies.core.Logs.LogService;
+import com.batista.stickies.ui.components.BJButton;
+import com.formdev.flatlaf.FlatClientProperties;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -22,7 +24,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.sql.SQLException;
 import java.util.Objects;
 
 public class HomeMenu extends JFrame {
@@ -30,8 +31,6 @@ public class HomeMenu extends JFrame {
     private final NoteManager noteManager;
     private final WindowData windowData;
     private JPanel titleBar;
-    private JPanel dragSection;
-    private int offsetX, offsetY;
 
     // Colors
     private static final Color BG       = new Color(0x2b2b2b);
@@ -46,7 +45,6 @@ public class HomeMenu extends JFrame {
         this.noteManager = noteManager;
         this.windowData = windowData;
         initHomeWindow();
-        makeDraggable();
         LogService.info("HomeMenu fully initialized.");
     }
 
@@ -54,8 +52,14 @@ public class HomeMenu extends JFrame {
         LogService.info("initHomeWindow called.");
         setSize(750, 600);
         setLocation(windowData.getCordX(), windowData.getCordY());
-        setUndecorated(true);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_HEIGHT, 32);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_CLOSE, false);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_MAXIMIZE, false);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_ICONIFFY, false);
+
         getContentPane().setBackground(BG);
         setLayout(new BorderLayout());
 
@@ -69,7 +73,8 @@ public class HomeMenu extends JFrame {
         appIconLabel.setBorder(new EmptyBorder(0, 8, 0, 8));
         titleBar.add(appIconLabel, BorderLayout.WEST);
 
-        JButton closeButton = new JButton("X");
+        BJButton closeButton = new BJButton();
+        closeButton.setSVGIcon(Objects.requireNonNull(getClass().getResource("/Icons/CloseButton.svg")),20,20);
         closeButton.setForeground(FG_GRAY);
         closeButton.setFocusable(false);
         closeButton.setBorderPainted(false);
@@ -110,6 +115,7 @@ public class HomeMenu extends JFrame {
             }
         };
         content.setBackground(BG);
+        content.setOpaque(true);
         content.setBorder(new EmptyBorder(24, 32, 16, 32));
 
         // -- HEADER (avatar + greeting + username) --
@@ -206,6 +212,13 @@ public class HomeMenu extends JFrame {
         memTimer.start();
 
         add(statusBar, BorderLayout.SOUTH);
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentMoved(java.awt.event.ComponentEvent e) {
+                windowData.setCordX(getX());
+                windowData.setCordY(getY());
+            }
+        });
         LogService.info("initHomeWindow complete.");
     }
 
@@ -310,32 +323,6 @@ public class HomeMenu extends JFrame {
         g2.drawImage(src, 0, 0, size, size, null);
         g2.dispose();
         return out;
-    }
-
-    private void makeDraggable() {
-        LogService.info("HomeMenu.makeDraggable called.");
-        titleBar.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                offsetX = e.getX();
-                offsetY = e.getY();
-            }
-        });
-        titleBar.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                windowData.setCordX(getLocation().x);
-                windowData.setCordY(getLocation().y);
-                LogService.info("HomeMenu moved | x=" + windowData.getCordX() + " y=" + windowData.getCordY());
-            }
-        });
-        titleBar.addMouseMotionListener(new MouseAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                setLocation(e.getXOnScreen() - offsetX, e.getYOnScreen() - offsetY);
-            }
-        });
-        LogService.info("HomeMenu.makeDraggable setup complete.");
     }
 
     private void noteClick(JPanel card, Note note) {
