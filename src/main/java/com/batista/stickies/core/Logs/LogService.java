@@ -72,10 +72,12 @@ public class LogService {
     }
     // DEBUG
     public static void debug(String message) {
-        try {
-            log(LogLevel.DEBUG, message); // Calls from log
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (System.getProperty("debug") != null) {
+            try {
+                log(LogLevel.DEBUG, message); // Calls from log
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

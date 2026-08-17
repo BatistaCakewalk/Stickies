@@ -18,6 +18,8 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
+import javax.swing.SwingUtilities;
+
 
 public class TrayManager {
     // Variables
@@ -113,22 +115,11 @@ public class TrayManager {
             switch (e.getActionCommand()) {
                 case ACTION_NEW_NOTE:
                     Note note = NoteManager.getInstance().createNote();
-                    try {
-                        new NoteWindow(note, NoteManager.getInstance()).setVisible(true);
-                        LogService.info("Triggered New Note.");
-                    } catch (IOException ex) {
-                        LogService.info("Something went wrong! RuntimeException(ex)");
-                        throw new RuntimeException(ex);
-                    }
+                    showOnEdt(() -> new NoteWindow(note, NoteManager.getInstance()), "Triggered New Note.");
                     break;
                 case ACTION_OPEN_MAIN:
-                    try {
-                        LogService.info("'Open main app' triggered.");
-                        new HomeMenu(NoteManager.getInstance(), windowData).setVisible(true);
-                    } catch (IOException ex) {
-                        LogService.info("Something went wrong! RuntimeException(ex)");
-                        throw new RuntimeException(ex);
-                    }
+                    LogService.info("'Open main app' triggered.");
+                    showOnEdt(() -> new HomeMenu(NoteManager.getInstance(), windowData), "Opened main app.");
                     break;
                 case ACTION_EXIT:
                     LogService.info("Exit Stickies triggered. Ending Program.");
@@ -141,6 +132,26 @@ public class TrayManager {
             }
         };
         return listener;
+    }
+
+    private void showOnEdt(WindowSupplier supplier, String successMessage) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                Window window = supplier.create();
+                window.setVisible(true);
+                window.validate();
+                window.repaint();
+                LogService.info(successMessage);
+            } catch (IOException ex) {
+                LogService.info("Something went wrong! RuntimeException(ex)");
+                throw new RuntimeException(ex);
+            }
+        });
+    }
+
+    @FunctionalInterface
+    private interface WindowSupplier {
+        Window create() throws IOException;
     }
 
 }
