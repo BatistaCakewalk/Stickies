@@ -13,6 +13,7 @@ package com.batista.stickies.ui;
 import com.batista.stickies.core.Note;
 import com.batista.stickies.core.NoteManager;
 import com.batista.stickies.core.Logs.LogService;
+import com.batista.stickies.storage.StorageHandler;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -23,6 +24,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class NoteWindow extends JFrame {
@@ -39,14 +41,18 @@ public class NoteWindow extends JFrame {
         LogService.info("NoteWindow constructor called | noteId=" + note.getId());
         this.note = note;
         this.noteManager = noteManager;
-        initWindow();
+        try {
+            initWindow();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         initComponents();
         makeDraggable();
         makeSizeable();
         LogService.info("NoteWindow fully initialized | noteId=" + note.getId());
     }
 
-    private void initWindow() throws IOException {
+    private void initWindow() throws IOException, SQLException {
         LogService.info("initWindow called | noteId=" + note.getId());
         setSize(note.getWidth(), note.getHeight());
         setLocation(note.getCordX(), note.getCordY());
@@ -69,6 +75,11 @@ public class NoteWindow extends JFrame {
         JButton closeButton = new JButton("X");
         closeButton.addActionListener(e -> {
             LogService.info("closeButton clicked | noteId=" + note.getId() + " | disposing window.");
+            try {
+                StorageHandler.discardNoteState(this.note.getId());
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
             dispose();
         });
         closeButton.setFocusable(false);
@@ -100,6 +111,20 @@ public class NoteWindow extends JFrame {
 
         getContentPane().setBackground(Color.decode(note.getColor()));
         LogService.info("initWindow complete | noteId=" + note.getId());
+        StorageHandler.handleNoteState(this.note.getId()); // Function to save the state.
+    }
+
+    public static void initRestoredWindows(NoteManager manager) throws SQLException, IOException {
+        ArrayList<String> savedIds = StorageHandler.loadNoteStates();
+        for (String savedId : savedIds) {
+            for (Note note : manager.getNotes()) {
+                if (note.getId().equals(savedId)) {
+                    NoteWindow window = new NoteWindow(note, manager);
+                    window.setVisible(true);
+                    break;
+                }
+            }
+        }
     }
 
     private void initComponents() {
