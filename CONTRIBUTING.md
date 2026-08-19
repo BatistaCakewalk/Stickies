@@ -11,9 +11,9 @@ Small fixes (typos, obvious bugs) — just PR it, no need to ask.
 ## Branches
 
 - `master` — stable, what ships
-- `dev` — active development, base your work off this
+- `dev` — active development, base your work off this. **`dev` will be retired soon and replaced with a fresh branch — watch the repo for updates before basing any work off it.**
 
-PRs go to `dev`, not `master`.
+PRs go to `dev` for now, not `master`.
 
 ## Getting set up
 
