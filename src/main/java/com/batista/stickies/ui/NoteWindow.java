@@ -14,14 +14,17 @@ import com.batista.stickies.core.Note;
 import com.batista.stickies.core.NoteManager;
 import com.batista.stickies.core.Logs.LogService;
 import com.batista.stickies.storage.StorageHandler;
+import com.batista.stickies.ui.components.BJButton;
+import com.batista.stickies.ui.components.BJToggleButton;
+import com.batista.stickies.ui.components.TransparentPanel;
+import com.formdev.flatlaf.FlatClientProperties;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -29,13 +32,40 @@ import java.util.Objects;
 
 public class NoteWindow extends JFrame {
 
+    private static final int MIN_WIDTH = 160;
+    private static final int MIN_HEIGHT = 80;
+
     private final Note note;
     private final NoteManager noteManager;
     private JTextArea textArea;
-    private int offsetX, offsetY;
     private JPanel titleBar;
-    private JPanel dragSection;
-    private int startW, startH;
+    private boolean contentDirty;
+    private boolean geometryDirty;
+    private final Timer saveCooldownTimer = new Timer(500, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (!contentDirty && !geometryDirty) {
+                return;
+            }
+            if (contentDirty) {
+                note.setContent(textArea.getText());
+            }
+            if (geometryDirty) {
+                note.setCordX(getX());
+                note.setCordY(getY());
+                note.setWidth(getWidth());
+                note.setHeight(getHeight());
+            }
+            try {
+                noteManager.saveNote(note);
+            } catch (SQLException ex) {
+                LogService.critical("save cooldown: saveNote failed | " + ex.getMessage());
+                throw new RuntimeException(ex);
+            }
+            contentDirty = false;
+            geometryDirty = false;
+        }
+    });
 
     public NoteWindow(Note note, NoteManager noteManager) throws IOException {
         LogService.info("NoteWindow constructor called | noteId=" + note.getId());
@@ -47,22 +77,23 @@ public class NoteWindow extends JFrame {
             throw new RuntimeException(e);
         }
         initComponents();
-        makeDraggable();
-        makeSizeable();
         LogService.info("NoteWindow fully initialized | noteId=" + note.getId());
     }
 
     private void initWindow() throws IOException, SQLException {
-        LogService.info("initWindow called | noteId=" + note.getId());
+        LogService.debug("initWindow called | noteId=" + note.getId());
         setSize(note.getWidth(), note.getHeight());
         setLocation(note.getCordX(), note.getCordY());
         setAlwaysOnTop(false);
-        setUndecorated(true);
+        setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setType(Type.UTILITY);
+        getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
+        getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_HEIGHT, 32);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_CLOSE, false);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_MAXIMIZE, false);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_ICONIFFY, false);
 
-        Image image = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/Pin.png")));
-        Image scaled = image.getScaledInstance(12, 18, Image.SCALE_SMOOTH);
         LogService.debug("Pin icon loaded and scaled.");
 
         titleBar = new JPanel();
@@ -72,9 +103,29 @@ public class NoteWindow extends JFrame {
         add(titleBar, BorderLayout.NORTH);
         LogService.debug("titleBar added.");
 
-        JButton closeButton = new JButton("X");
+        BJButton closeButton = new BJButton();
+        closeButton.setSVGIcon(Objects.requireNonNull(getClass().getResource("/Icons/CloseButton.svg")),20,20);
         closeButton.addActionListener(e -> {
             LogService.info("closeButton clicked | noteId=" + note.getId() + " | disposing window.");
+            if (contentDirty || geometryDirty) {
+                saveCooldownTimer.stop();
+                if (contentDirty) {
+                    note.setContent(textArea.getText());
+                }
+                if (geometryDirty) {
+                    note.setCordX(getX());
+                    note.setCordY(getY());
+                    note.setWidth(getWidth());
+                    note.setHeight(getHeight());
+                }
+                try {
+                    noteManager.saveNote(this.note);
+                } catch (SQLException ex) {
+                    LogService.critical("closeButton saveNote failed | " + ex.getMessage());
+                }
+                contentDirty = false;
+                geometryDirty = false;
+            }
             try {
                 StorageHandler.discardNoteState(this.note.getId());
             } catch (SQLException ex) {
@@ -82,34 +133,49 @@ public class NoteWindow extends JFrame {
             }
             dispose();
         });
-        closeButton.setFocusable(false);
-        closeButton.setBorderPainted(false);
-        closeButton.setContentAreaFilled(false);
         titleBar.add(closeButton, BorderLayout.EAST);
 
-        JButton alwaysOnTopButton = new JButton();
-        alwaysOnTopButton.setIcon(new ImageIcon(scaled));
+
+
+        BJToggleButton alwaysOnTopButton = new BJToggleButton();
+        alwaysOnTopButton.setSVGIcon(Objects.requireNonNull(getClass().getResource("/Icons/Pin.svg")), 20, 20);
+        alwaysOnTopButton.setSelected(isAlwaysOnTop());
         alwaysOnTopButton.addActionListener(e -> {
-            boolean newState = !isAlwaysOnTop();
+            boolean newState = alwaysOnTopButton.isSelected();
             LogService.info("alwaysOnTopButton clicked | noteId=" + note.getId() + " | alwaysOnTop=" + newState);
             setAlwaysOnTop(newState);
         });
-        alwaysOnTopButton.setFocusable(false);
-        alwaysOnTopButton.setBorderPainted(false);
-        alwaysOnTopButton.setContentAreaFilled(false);
 
-        JPanel buttonWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
+        JPanel buttonWrapper = new TransparentPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
         buttonWrapper.setOpaque(false);
+        buttonWrapper.setBackground(titleBar.getBackground());
         titleBar.add(buttonWrapper, BorderLayout.WEST);
         buttonWrapper.add(alwaysOnTopButton, BorderLayout.WEST);
 
-        dragSection = new JPanel();
-        dragSection.setPreferredSize(new Dimension(getWidth(), 8));
-        dragSection.setOpaque(false);
-        add(dragSection, BorderLayout.SOUTH);
-        LogService.debug("dragSection added.");
+
 
         getContentPane().setBackground(Color.decode(note.getColor()));
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentMoved(java.awt.event.ComponentEvent e) {
+                if (note.getCordX() != getX() || note.getCordY() != getY()) {
+                    note.setCordX(getX());
+                    note.setCordY(getY());
+                    geometryDirty = true;
+                    saveCooldownTimer.restart();
+                }
+            }
+
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                if (note.getWidth() != getWidth() || note.getHeight() != getHeight()) {
+                    note.setWidth(getWidth());
+                    note.setHeight(getHeight());
+                    geometryDirty = true;
+                    saveCooldownTimer.restart();
+                }
+            }
+        });
         LogService.info("initWindow complete | noteId=" + note.getId());
         StorageHandler.handleNoteState(this.note.getId()); // Function to save the state.
     }
@@ -142,113 +208,25 @@ public class NoteWindow extends JFrame {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 LogService.debug("DocumentListener.insertUpdate | noteId=" + note.getId());
-                note.setContent(textArea.getText());
-                try {
-                    noteManager.saveAll();
-                } catch (SQLException ex) {
-                    LogService.critical("insertUpdate: saveAll failed | " + ex.getMessage());
-                    throw new RuntimeException(ex);
-                }
+                contentDirty = true;
+                saveCooldownTimer.restart();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
                 LogService.debug("DocumentListener.removeUpdate | noteId=" + note.getId());
-                note.setContent(textArea.getText());
-                try {
-                    noteManager.saveAll();
-                } catch (SQLException ex) {
-                    LogService.critical("removeUpdate: saveAll failed | " + ex.getMessage());
-                    throw new RuntimeException(ex);
-                }
+                contentDirty = true;
+                saveCooldownTimer.restart();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
                 LogService.debug("DocumentListener.changedUpdate | noteId=" + note.getId());
-                note.setContent(textArea.getText());
-                try {
-                    noteManager.saveAll();
-                } catch (SQLException ex) {
-                    LogService.critical("changedUpdate: saveAll failed | " + ex.getMessage());
-                    throw new RuntimeException(ex);
-                }
+                contentDirty = true;
+                saveCooldownTimer.restart();
             }
         });
         LogService.info("initComponents complete | noteId=" + note.getId());
     }
 
-    private void makeDraggable() {
-        LogService.info("makeDraggable called | noteId=" + note.getId());
-        titleBar.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                offsetX = e.getX();
-                offsetY = e.getY();
-                LogService.debug("titleBar mousePressed | offsetX=" + offsetX + " offsetY=" + offsetY);
-            }
-        });
-
-        titleBar.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                note.setCordX(getLocation().x);
-                note.setCordY(getLocation().y);
-                LogService.info("titleBar mouseReleased | noteId=" + note.getId() + " | x=" + note.getCordX() + " y=" + note.getCordY());
-                try {
-                    noteManager.saveAll();
-                } catch (SQLException ex) {
-                    LogService.critical("makeDraggable mouseReleased: saveAll failed | " + ex.getMessage());
-                    throw new RuntimeException(ex);
-                }
-            }
-        });
-
-        titleBar.addMouseMotionListener(new MouseAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                setLocation(e.getXOnScreen() - offsetX, e.getYOnScreen() - offsetY);
-            }
-        });
-        LogService.info("makeDraggable setup complete | noteId=" + note.getId());
-    }
-
-    private void makeSizeable() {
-        LogService.info("makeSizeable called | noteId=" + note.getId());
-        dragSection.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                startW = getWidth();
-                startH = getHeight();
-                offsetX = e.getXOnScreen();
-                offsetY = e.getYOnScreen();
-                LogService.debug("dragSection mousePressed | startW=" + startW + " startH=" + startH);
-            }
-        });
-
-        dragSection.addMouseMotionListener(new MouseAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent e) {
-                int newW = startW + (e.getXOnScreen() - offsetX);
-                int newH = startH + (e.getYOnScreen() - offsetY);
-                setSize(newW, newH);
-            }
-        });
-
-        dragSection.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                note.setWidth(getWidth());
-                note.setHeight(getHeight());
-                LogService.info("dragSection mouseReleased | noteId=" + note.getId() + " | w=" + note.getWidth() + " h=" + note.getHeight());
-                try {
-                    noteManager.saveAll();
-                } catch (SQLException ex) {
-                    LogService.critical("makeSizeable mouseReleased: saveAll failed | " + ex.getMessage());
-                    throw new RuntimeException(ex);
-                }
-            }
-        });
-        LogService.info("makeSizeable setup complete | noteId=" + note.getId());
-    }
 }

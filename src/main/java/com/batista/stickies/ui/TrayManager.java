@@ -18,6 +18,8 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
+import javax.swing.SwingUtilities;
+
 
 public class TrayManager {
     // Variables
@@ -136,6 +138,14 @@ public class TrayManager {
                     System.exit(0); // Kill program
                     break;
                 case ACTION_SETTINGS:
+                    try {
+                        LogService.info("'Settings' triggered.");
+                        new SettingsMenu(windowData).setVisible(true);
+                    } catch (IOException ex) {
+                        LogService.info("Something went wrong! RuntimeException(ex)");
+                        throw new RuntimeException(ex);
+                    }
+                    break;
                 case ACTION_OPEN_NOTE:
                     break;
                 default:
@@ -144,6 +154,26 @@ public class TrayManager {
             }
         };
         return listener;
+    }
+
+    private void showOnEdt(WindowSupplier supplier, String successMessage) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                Window window = supplier.create();
+                window.setVisible(true);
+                window.validate();
+                window.repaint();
+                LogService.info(successMessage);
+            } catch (IOException ex) {
+                LogService.info("Something went wrong! RuntimeException(ex)");
+                throw new RuntimeException(ex);
+            }
+        });
+    }
+
+    @FunctionalInterface
+    private interface WindowSupplier {
+        Window create() throws IOException;
     }
 
 }
