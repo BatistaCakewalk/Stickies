@@ -14,15 +14,28 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public class Main {
-    public static void main(String[] args) throws SQLException, IOException {
-        LogService.info("com.batista.stickies.Main.main()");
-        NoteManager manager = new NoteManager(); // Object
-        TrayManager tray = new TrayManager(); // Object
+    public static void main(String[] args) {
+        System.out.println("com.batista.stickies.Main.main()");
+        FlatLightLaf.setup();
+        JFrame.setDefaultLookAndFeelDecorated(true);
+        SwingUtilities.invokeLater(() -> {
+            NoteManager manager = null; // Object
+            try {
+                manager = new NoteManager();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            TrayManager tray = new TrayManager(); // Object
 //        Note note = manager.createNote();
 //
 //        NoteWindow window = new NoteWindow(note, manager);
 //        window.setVisible(true);
-        com.batista.stickies.ui.NoteWindow.initRestoredWindows(manager);
-        tray.initTray();
+            try {
+                com.batista.stickies.ui.NoteWindow.initRestoredWindows(manager);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            tray.initTray();
+        });
     }
 }
