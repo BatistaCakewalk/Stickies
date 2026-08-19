@@ -14,6 +14,10 @@ import com.batista.stickies.core.Note;
 import com.batista.stickies.core.NoteManager;
 import com.batista.stickies.core.Logs.LogService;
 import com.batista.stickies.storage.StorageHandler;
+import com.batista.stickies.ui.components.BJButton;
+import com.batista.stickies.ui.components.BJToggleButton;
+import com.batista.stickies.ui.components.TransparentPanel;
+import com.formdev.flatlaf.FlatClientProperties;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -37,7 +41,7 @@ public class NoteWindow extends JFrame {
     private JPanel titleBar;
     private boolean contentDirty;
     private boolean geometryDirty;
-    private final Timer saveCooldownTimer = new Timer(300, new ActionListener() {
+    private final Timer saveCooldownTimer = new Timer(500, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (!contentDirty && !geometryDirty) {
@@ -46,10 +50,16 @@ public class NoteWindow extends JFrame {
             if (contentDirty) {
                 note.setContent(textArea.getText());
             }
+            if (geometryDirty) {
+                note.setCordX(getX());
+                note.setCordY(getY());
+                note.setWidth(getWidth());
+                note.setHeight(getHeight());
+            }
             try {
-                noteManager.saveAll();
+                noteManager.saveNote(note);
             } catch (SQLException ex) {
-                LogService.critical("save cooldown: saveAll failed | " + ex.getMessage());
+                LogService.critical("save cooldown: saveNote failed | " + ex.getMessage());
                 throw new RuntimeException(ex);
             }
             contentDirty = false;
@@ -71,13 +81,13 @@ public class NoteWindow extends JFrame {
     }
 
     private void initWindow() throws IOException, SQLException {
-        LogService.info("initWindow called | noteId=" + note.getId());
+        LogService.debug("initWindow called | noteId=" + note.getId());
         setSize(note.getWidth(), note.getHeight());
         setLocation(note.getCordX(), note.getCordY());
         setAlwaysOnTop(false);
         setMinimumSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
+        getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
         getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
         getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_HEIGHT, 32);
         getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_CLOSE, false);
@@ -97,6 +107,25 @@ public class NoteWindow extends JFrame {
         closeButton.setSVGIcon(Objects.requireNonNull(getClass().getResource("/Icons/CloseButton.svg")),20,20);
         closeButton.addActionListener(e -> {
             LogService.info("closeButton clicked | noteId=" + note.getId() + " | disposing window.");
+            if (contentDirty || geometryDirty) {
+                saveCooldownTimer.stop();
+                if (contentDirty) {
+                    note.setContent(textArea.getText());
+                }
+                if (geometryDirty) {
+                    note.setCordX(getX());
+                    note.setCordY(getY());
+                    note.setWidth(getWidth());
+                    note.setHeight(getHeight());
+                }
+                try {
+                    noteManager.saveNote(this.note);
+                } catch (SQLException ex) {
+                    LogService.critical("closeButton saveNote failed | " + ex.getMessage());
+                }
+                contentDirty = false;
+                geometryDirty = false;
+            }
             try {
                 StorageHandler.discardNoteState(this.note.getId());
             } catch (SQLException ex) {
@@ -104,35 +133,47 @@ public class NoteWindow extends JFrame {
             }
             dispose();
         });
-        closeButton.setFocusable(false);
-        closeButton.setBorderPainted(false);
-        closeButton.setContentAreaFilled(false);
         titleBar.add(closeButton, BorderLayout.EAST);
 
-        BJButton alwaysOnTopButton = new BJButton();
-        alwaysOnTopButton.setSVGIcon(Objects.requireNonNull(getClass().getResource("/Icons/Pin.svg")),20,20);
+
+
+        BJToggleButton alwaysOnTopButton = new BJToggleButton();
+        alwaysOnTopButton.setSVGIcon(Objects.requireNonNull(getClass().getResource("/Icons/Pin.svg")), 20, 20);
+        alwaysOnTopButton.setSelected(isAlwaysOnTop());
         alwaysOnTopButton.addActionListener(e -> {
-            boolean newState = !isAlwaysOnTop();
+            boolean newState = alwaysOnTopButton.isSelected();
             LogService.info("alwaysOnTopButton clicked | noteId=" + note.getId() + " | alwaysOnTop=" + newState);
             setAlwaysOnTop(newState);
         });
-        alwaysOnTopButton.setFocusable(false);
-        alwaysOnTopButton.setBorderPainted(false);
-        alwaysOnTopButton.setContentAreaFilled(false);
 
-        JPanel buttonWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
+        JPanel buttonWrapper = new TransparentPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
         buttonWrapper.setOpaque(false);
+        buttonWrapper.setBackground(titleBar.getBackground());
         titleBar.add(buttonWrapper, BorderLayout.WEST);
         buttonWrapper.add(alwaysOnTopButton, BorderLayout.WEST);
+
+
 
         getContentPane().setBackground(Color.decode(note.getColor()));
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentMoved(java.awt.event.ComponentEvent e) {
-                note.setCordX(getX());
-                note.setCordY(getY());
-                geometryDirty = true;
-                saveCooldownTimer.restart();
+                if (note.getCordX() != getX() || note.getCordY() != getY()) {
+                    note.setCordX(getX());
+                    note.setCordY(getY());
+                    geometryDirty = true;
+                    saveCooldownTimer.restart();
+                }
+            }
+
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                if (note.getWidth() != getWidth() || note.getHeight() != getHeight()) {
+                    note.setWidth(getWidth());
+                    note.setHeight(getHeight());
+                    geometryDirty = true;
+                    saveCooldownTimer.restart();
+                }
             }
         });
         LogService.info("initWindow complete | noteId=" + note.getId());

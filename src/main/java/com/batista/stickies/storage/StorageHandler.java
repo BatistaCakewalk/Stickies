@@ -42,8 +42,21 @@ public class StorageHandler {
         LogService.info("DB parent directories ensured.");
         connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
         LogService.info("JDBC connection established.");
+        applyPragmas();
         initDB();
         initStateDB();
+    }
+
+    private void applyPragmas() {
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute("PRAGMA journal_mode = WAL;");
+            stmt.execute("PRAGMA synchronous = NORMAL;");
+            stmt.execute("PRAGMA busy_timeout = 5000;");
+            stmt.execute("PRAGMA temp_store = MEMORY;");
+            LogService.info("SQLite PRAGMAs applied (WAL mode, NORMAL synchronous).");
+        } catch (SQLException e) {
+            LogService.warn("Failed to apply SQLite PRAGMAs | " + e.getMessage());
+        }
     }
 
     public static StorageHandler getInstance() {
@@ -73,12 +86,13 @@ public class StorageHandler {
         LogService.info("initStateDB complete.");
     }
 
-    public void saveNotes(ArrayList<Note> notes) throws SQLException {
-        LogService.info("saveNotes called. Saving " + notes.size() + " notes.");
+    public void saveNote(Note note) throws SQLException {
+        if (note == null) {
+            return;
+        }
+        LogService.debug("saveNote called | id=" + note.getId());
         String sql = "INSERT OR REPLACE INTO Notes (id, content, color, width, height, x, y) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        for (Note note : notes) {
-            LogService.debug("Saving note | id=" + note.getId());
-            PreparedStatement stmt = connection.prepareStatement(sql);
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, note.getId());
             stmt.setString(2, note.getContent());
             stmt.setString(3, note.getColor());
@@ -87,7 +101,65 @@ public class StorageHandler {
             stmt.setInt(6, note.getCordX());
             stmt.setInt(7, note.getCordY());
             stmt.executeUpdate();
-            LogService.debug("Note saved | id=" + note.getId());
+        }
+        LogService.debug("saveNote complete | id=" + note.getId());
+    }
+
+    public void deleteNote(String noteId) throws SQLException {
+        if (noteId == null) {
+            return;
+        }
+        LogService.info("deleteNote called | id=" + noteId);
+        String sqlNotes = "DELETE FROM Notes WHERE id = ?";
+        String sqlState = "DELETE FROM noteState WHERE id = ?";
+        boolean autoCommit = connection.getAutoCommit();
+        try {
+            connection.setAutoCommit(false);
+            try (PreparedStatement stmt1 = connection.prepareStatement(sqlNotes);
+                 PreparedStatement stmt2 = connection.prepareStatement(sqlState)) {
+                stmt1.setString(1, noteId);
+                stmt1.executeUpdate();
+                stmt2.setString(1, noteId);
+                stmt2.executeUpdate();
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(autoCommit);
+        }
+        LogService.info("deleteNote complete | id=" + noteId);
+    }
+
+    public void saveNotes(ArrayList<Note> notes) throws SQLException {
+        if (notes == null || notes.isEmpty()) {
+            return;
+        }
+        LogService.info("saveNotes called. Saving " + notes.size() + " notes.");
+        String sql = "INSERT OR REPLACE INTO Notes (id, content, color, width, height, x, y) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        boolean autoCommit = connection.getAutoCommit();
+        try {
+            connection.setAutoCommit(false);
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                for (Note note : notes) {
+                    stmt.setString(1, note.getId());
+                    stmt.setString(2, note.getContent());
+                    stmt.setString(3, note.getColor());
+                    stmt.setInt(4, note.getWidth());
+                    stmt.setInt(5, note.getHeight());
+                    stmt.setInt(6, note.getCordX());
+                    stmt.setInt(7, note.getCordY());
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            connection.rollback();
+            throw e;
+        } finally {
+            connection.setAutoCommit(autoCommit);
         }
         LogService.info("saveNotes complete.");
     }
@@ -95,19 +167,21 @@ public class StorageHandler {
     public ArrayList<Note> loadNotes() throws SQLException {
         LogService.info("loadNotes called.");
         String sql = "SELECT * FROM Notes";
-        ResultSet rs = connection.createStatement().executeQuery(sql);
         ArrayList<Note> notes = new ArrayList<>();
-        while (rs.next()) {
-            Note note = new Note();
-            note.setId(rs.getString("id"));
-            note.setContent(rs.getString("content"));
-            note.setColor(rs.getString("color"));
-            note.setWidth(rs.getInt("width"));
-            note.setHeight(rs.getInt("height"));
-            note.setCordX(rs.getInt("x"));
-            note.setCordY(rs.getInt("y"));
-            notes.add(note);
-            LogService.debug("Note loaded | id=" + note.getId());
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                Note note = new Note();
+                note.setId(rs.getString("id"));
+                note.setContent(rs.getString("content"));
+                note.setColor(rs.getString("color"));
+                note.setWidth(rs.getInt("width"));
+                note.setHeight(rs.getInt("height"));
+                note.setCordX(rs.getInt("x"));
+                note.setCordY(rs.getInt("y"));
+                notes.add(note);
+                LogService.debug("Note loaded | id=" + note.getId());
+            }
         }
         LogService.info("loadNotes complete. Loaded " + notes.size() + " notes.");
         return notes;
@@ -116,10 +190,12 @@ public class StorageHandler {
     public static ArrayList<String> loadNoteStates() throws SQLException {
         LogService.info("loadNoteStates called.");
         String sql = "SELECT * FROM noteState";
-        ResultSet rs = connection.createStatement().executeQuery(sql);
         ArrayList<String> noteIds = new ArrayList<>();
-        while (rs.next()) {
-            noteIds.add(rs.getString("id"));
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                noteIds.add(rs.getString("id"));
+            }
         }
         LogService.info("loadNoteStates complete. Loaded " + noteIds.size() + " note states.");
         return noteIds;
@@ -131,22 +207,25 @@ public class StorageHandler {
         String sql = "INSERT OR REPLACE INTO noteState (id) VALUES (?)";
 
         LogService.debug("Saving state | id=" + noteId);
-        PreparedStatement stmt = connection.prepareStatement(sql);
-        stmt.setString(1, noteId);
-        stmt.executeUpdate();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, noteId);
+            stmt.executeUpdate();
+        }
         LogService.debug("State saved | id=" + noteId);
 
         LogService.info("handleNoteState complete.");
     }
+
     // Discards handling if the note closes. Will not open again unless it's saved in the tables
     public static void discardNoteState(String noteId) throws SQLException {
         LogService.info("discardNoteState called. Discarding state.");
         String sql = "DELETE FROM noteState WHERE id = ?";
 
         LogService.debug("Discarding | id=" + noteId);
-        PreparedStatement stmt = connection.prepareStatement(sql);
-        stmt.setString(1, noteId);
-        stmt.executeUpdate();
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, noteId);
+            stmt.executeUpdate();
+        }
         LogService.debug("State discarded | id=" + noteId);
 
         LogService.info("discardNoteState complete.");
