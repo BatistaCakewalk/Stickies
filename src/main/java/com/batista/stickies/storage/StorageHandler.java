@@ -50,10 +50,6 @@ public class StorageHandler {
         return instance;
     }
 
-    public static StorageHandler getInstance() {
-        return instance;
-    }
-
     public void initDB() throws SQLException {
         LogService.info("initDB called. Creating Notes table if not exists.");
         String sql = "CREATE TABLE IF NOT EXISTS Notes (" +
