@@ -12,6 +12,7 @@ import com.batista.stickies.core.WindowData;
 import com.batista.stickies.core.Logs.LogService;
 import com.batista.stickies.ui.components.BJButton;
 import com.formdev.flatlaf.FlatClientProperties;
+import com.batista.stickies.ui.openNotesMenu;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -31,6 +32,7 @@ public class HomeMenu extends JFrame {
     private final NoteManager noteManager;
     private final WindowData windowData;
     private JPanel titleBar;
+    private JButton openNotes;
 
     // Colors
     private static final Color BG       = new Color(0x2b2b2b);
@@ -117,9 +119,12 @@ public class HomeMenu extends JFrame {
         content.setOpaque(true);
         content.setBorder(new EmptyBorder(24, 32, 16, 32));
 
-        // -- HEADER (avatar + greeting + username) --
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
+        // -- HEADER (avatar + greeting + username + open button) --
+        JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
+
+        JPanel userInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
+        userInfo.setOpaque(false);
 
         // Avatar: load cross-platform OS account picture, hide on failure
         String username = System.getProperty("user.name");
@@ -134,7 +139,7 @@ public class HomeMenu extends JFrame {
             avatarLabel.setVisible(false);
             LogService.info("No avatar found — hiding avatar label.");
         }
-        header.add(avatarLabel);
+        userInfo.add(avatarLabel);
 
         // Greeting + username stacked vertically
         JPanel greetingPanel = new JPanel();
@@ -146,7 +151,30 @@ public class HomeMenu extends JFrame {
         greetingLabel.setForeground(FG_WHITE);
         greetingPanel.add(greetingLabel);
 
-        header.add(greetingPanel);
+        userInfo.add(greetingPanel);
+        header.add(userInfo, BorderLayout.WEST);
+
+        // Open Notes Button
+        BJButton openButton = new BJButton();
+        openButton.setText("Open Notes");
+        openButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        openButton.setForeground(FG_WHITE);
+        openButton.setBlendBackground(new Color(0x4a4d4f));
+        openButton.setHoverAlpha(30);
+        openButton.setFocusable(false);
+        openButton.setBorder(new EmptyBorder(10, 24, 10, 24));
+        openButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        openButton.addActionListener(e -> { 
+            LogService.info("openNotes clicked."); 
+            new openNotesMenu(noteManager, windowData).setVisible(true); 
+        });
+        
+        JPanel buttonWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 15));
+        buttonWrapper.setOpaque(false);
+        buttonWrapper.add(openButton);
+        
+        header.add(buttonWrapper, BorderLayout.EAST);
+
         content.add(header, BorderLayout.NORTH);
 
         // -- CENTER: Recent Notes + decorative sticky notes --
