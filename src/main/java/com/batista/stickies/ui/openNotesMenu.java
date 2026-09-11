@@ -43,7 +43,7 @@ public class openNotesMenu extends JFrame {
     private void initOpenNotesMenu() {
         setTitle("Open Notes");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(450, 500);
+        setSize(650, 500);
         setLocationRelativeTo(null);
         
         getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
@@ -62,26 +62,33 @@ public class openNotesMenu extends JFrame {
         contentPane.add(titleLabel, BorderLayout.NORTH);
 
         JPanel notesPanel = new JPanel();
-        notesPanel.setLayout(new BoxLayout(notesPanel, BoxLayout.Y_AXIS));
+        notesPanel.setLayout(new GridLayout(0, 2, 15, 15));
         notesPanel.setBackground(BG);
         
         ArrayList<Note> notes = noteManager.getNotes();
         for (int i = notes.size() - 1; i >= 0; i--) {
             Note n = notes.get(i);
             notesPanel.add(makeNoteCard(n));
-            notesPanel.add(Box.createVerticalStrut(10));
         }
 
         if (notes.isEmpty()) {
+            notesPanel.setLayout(new BorderLayout());
             JLabel empty = new JLabel("No notes found.");
             empty.setForeground(FG_GRAY);
-            empty.setAlignmentX(Component.CENTER_ALIGNMENT);
-            notesPanel.add(empty);
+            empty.setHorizontalAlignment(SwingConstants.CENTER);
+            notesPanel.add(empty, BorderLayout.CENTER);
         }
 
-        JScrollPane scrollPane = new JScrollPane(notesPanel);
+        JPanel wrapperPanel = new JPanel(new BorderLayout());
+        wrapperPanel.setBackground(BG);
+        wrapperPanel.add(notesPanel, BorderLayout.NORTH);
+        // Add padding to keep cards away from the scroll bar
+        wrapperPanel.setBorder(new EmptyBorder(0, 0, 0, 10));
+
+        JScrollPane scrollPane = new JScrollPane(wrapperPanel);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().putClientProperty(FlatClientProperties.SCROLL_BAR_SHOW_BUTTONS, true);
         scrollPane.setBackground(BG);
         scrollPane.getViewport().setBackground(BG);
         
