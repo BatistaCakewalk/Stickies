@@ -12,9 +12,11 @@ import com.batista.stickies.core.Note;
 import com.batista.stickies.core.NoteManager;
 import com.batista.stickies.core.WindowData;
 import com.batista.stickies.core.Logs.LogService;
+import com.batista.stickies.ui.openNotesMenu;
 
 // Java Imports
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
@@ -110,49 +112,7 @@ public class TrayManager {
 
     private ActionListener getActionListener() {
         ActionListener listener;
-        listener = e -> {
-            // Execute Action here.
-            switch (e.getActionCommand()) {
-                case ACTION_NEW_NOTE:
-                    Note note = NoteManager.getInstance().createNote();
-                    try {
-                        new NoteWindow(note, NoteManager.getInstance()).setVisible(true);
-                        LogService.info("Triggered New Note.");
-                    } catch (IOException ex) {
-                        LogService.info("Something went wrong! RuntimeException(ex)");
-                        throw new RuntimeException(ex);
-                    }
-                    break;
-                case ACTION_OPEN_MAIN:
-                    try {
-                        LogService.info("'Open main app' triggered.");
-                        new HomeMenu(NoteManager.getInstance(), windowData).setVisible(true);
-                    } catch (IOException ex) {
-                        LogService.info("Something went wrong! RuntimeException(ex)");
-                        throw new RuntimeException(ex);
-                    }
-                    break;
-                case ACTION_EXIT:
-                    LogService.info("Exit Stickies triggered. Ending Program.");
-                    LogService.info("Goodbye!");
-                    System.exit(0); // Kill program
-                    break;
-                case ACTION_SETTINGS:
-                    try {
-                        LogService.info("'Settings' triggered.");
-                        new SettingsMenu(windowData).setVisible(true);
-                    } catch (IOException ex) {
-                        LogService.info("Something went wrong! RuntimeException(ex)");
-                        throw new RuntimeException(ex);
-                    }
-                    break;
-                case ACTION_OPEN_NOTE:
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + e.getActionCommand());
-                    // if you somehow get this error then how the fuck did you break the app :sob:
-            }
-        };
+        listener = this::actionPerformed;
         return listener;
     }
 
@@ -169,6 +129,52 @@ public class TrayManager {
                 throw new RuntimeException(ex);
             }
         });
+    }
+
+    private void actionPerformed(ActionEvent e) {
+        // Execute Action here.
+        switch (e.getActionCommand()) {
+            case ACTION_NEW_NOTE:
+                Note note = NoteManager.getInstance().createNote();
+                try {
+                    new NoteWindow(note, NoteManager.getInstance()).setVisible(true);
+                    LogService.info("Triggered New Note.");
+                } catch (IOException ex) {
+                    LogService.info("Something went wrong! RuntimeException(ex)");
+                    throw new RuntimeException(ex);
+                }
+                break;
+            case ACTION_OPEN_MAIN:
+                try {
+                    LogService.info("'Open main app' triggered.");
+                    new HomeMenu(NoteManager.getInstance(), windowData).setVisible(true);
+                } catch (IOException ex) {
+                    LogService.info("Something went wrong! RuntimeException(ex)");
+                    throw new RuntimeException(ex);
+                }
+                break;
+            case ACTION_EXIT:
+                LogService.info("Exit Stickies triggered. Ending Program.");
+                LogService.info("Goodbye!");
+                System.exit(0); // Kill program
+                break;
+            case ACTION_SETTINGS:
+                try {
+                    LogService.info("'Settings' triggered.");
+                    new SettingsMenu(windowData).setVisible(true);
+                } catch (IOException ex) {
+                    LogService.info("Something went wrong! RuntimeException(ex)");
+                    throw new RuntimeException(ex);
+                }
+                break;
+            case ACTION_OPEN_NOTE:
+                LogService.info("'Open Note' triggered from tray.");
+                new openNotesMenu(NoteManager.getInstance(), windowData).setVisible(true);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + e.getActionCommand());
+                // if you somehow get this error then how the fuck did you break the app :sob:
+        }
     }
 
     @FunctionalInterface
