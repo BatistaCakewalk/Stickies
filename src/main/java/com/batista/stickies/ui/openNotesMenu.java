@@ -87,6 +87,7 @@ public class openNotesMenu extends JFrame {
 
         JScrollPane scrollPane = new JScrollPane(wrapperPanel);
         scrollPane.setBorder(null);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         scrollPane.getVerticalScrollBar().putClientProperty(FlatClientProperties.SCROLL_BAR_SHOW_BUTTONS, true);
         scrollPane.setBackground(BG);
@@ -100,6 +101,7 @@ public class openNotesMenu extends JFrame {
         card.setBackground(BG_CARD);
         card.setBorder(new EmptyBorder(10, 15, 10, 15));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+        card.setPreferredSize(new Dimension(280, 65));
         card.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
@@ -119,7 +121,7 @@ public class openNotesMenu extends JFrame {
 
         String preview = note.getContent().isEmpty() ? "(empty note)" : note.getContent();
         preview = preview.replace("\n", " ").replace("\r", "");
-        if (preview.length() > 40) preview = preview.substring(0, 40) + "…";
+        if (preview.length() > 25) preview = preview.substring(0, 25) + "…";
 
         JLabel nameLabel = new JLabel(preview);
         nameLabel.setFont(new Font("Segoe UI", Font.BOLD, 15));
