@@ -159,7 +159,8 @@ public class HomeMenu extends JFrame {
         openButton.setText("Open Notes");
         openButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         openButton.setForeground(FG_WHITE);
-        openButton.setBackground(ACCENT);
+        openButton.setBlendBackground(new Color(0x4a4d4f));
+        openButton.setHoverAlpha(30);
         openButton.setFocusable(false);
         openButton.setBorder(new EmptyBorder(10, 24, 10, 24));
         openButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
