@@ -13,11 +13,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Ellipse2D;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
 import java.util.Objects;
 import java.util.ArrayList;
 
@@ -45,15 +41,45 @@ public class openNotesMenu extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(650, 500);
         setLocationRelativeTo(null);
+        setResizable(false);
         
         getRootPane().putClientProperty(FlatClientProperties.USE_WINDOW_DECORATIONS, true);
-        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_BACKGROUND, BG_DARK);
-        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_FOREGROUND, FG_WHITE);
-        
+        getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_HEIGHT, 32);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_CLOSE, false);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_MAXIMIZE, false);
+        getRootPane().putClientProperty(FlatClientProperties.TITLE_BAR_SHOW_ICONIFFY, false);
+        getContentPane().setBackground(BG);
+        setLayout(new BorderLayout());
+
+        // --- TITLE BAR ---
+        JPanel titleBar = new JPanel(new BorderLayout());
+        titleBar.setPreferredSize(new Dimension(getWidth(), 32));
+        titleBar.setBackground(BG_DARK);
+
+        try {
+            Image appIcon = ImageIO.read(Objects.requireNonNull(getClass().getResource("/Icons/StickiesIcon.png")));
+            JLabel appIconLabel = new JLabel(new ImageIcon(appIcon.getScaledInstance(16, 16, Image.SCALE_SMOOTH)));
+            appIconLabel.setBorder(new EmptyBorder(0, 8, 0, 8));
+            titleBar.add(appIconLabel, BorderLayout.WEST);
+        } catch (Exception ex) {
+            LogService.warn("Failed to load icon for openNotesMenu title bar | " + ex.getMessage());
+        }
+
+        BJButton closeButton = new BJButton();
+        closeButton.setSVGIcon(Objects.requireNonNull(getClass().getResource("/Icons/CloseButton.svg")),20,20);
+        closeButton.setForeground(FG_GRAY);
+        closeButton.setFocusable(false);
+        closeButton.setBorderPainted(false);
+        closeButton.setContentAreaFilled(false);
+        closeButton.addActionListener(e -> dispose());
+        titleBar.add(closeButton, BorderLayout.EAST);
+        add(titleBar, BorderLayout.NORTH);
+
+        // --- MAIN CONTENT ---
         contentPane = new JPanel(new BorderLayout());
         contentPane.setBackground(BG);
         contentPane.setBorder(new EmptyBorder(15, 15, 15, 15));
-        setContentPane(contentPane);
         
         JLabel titleLabel = new JLabel("All Notes");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
@@ -94,6 +120,7 @@ public class openNotesMenu extends JFrame {
         scrollPane.getViewport().setBackground(BG);
         
         contentPane.add(scrollPane, BorderLayout.CENTER);
+        add(contentPane, BorderLayout.CENTER);
     }
 
     private JPanel makeNoteCard(Note note) {
